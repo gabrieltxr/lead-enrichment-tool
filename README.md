@@ -12,10 +12,8 @@ O worker e as fontes chegam na Fase 2.
 
 `POST /webhooks/hubspot`
 
-1. Valida a assinatura **v3** do HubSpot (`X-HubSpot-Signature-v3` +
-   `X-HubSpot-Request-Timestamp`): HMAC-SHA256 de método + URI + corpo +
-   timestamp, com o client secret do app. Timestamp com mais de
-   `JANELA_ASSINATURA_SEGUNDOS` (padrão 300) é rejeitado. Falha: **401**.
+1. Valida a assinatura do HubSpot pela versão que a requisição traz (ver
+   [Assinatura e plano do HubSpot](#assinatura-e-plano-do-hubspot)). Falha: **401**.
 2. Valida o corpo (lista de 1 a 1000 eventos com `eventId`, `subscriptionType`
    e `objectId`). Falha: **422**. A assinatura é checada antes, então um corpo
    inválido sem assinatura recebe 401.
@@ -30,6 +28,27 @@ O worker e as fontes chegam na Fase 2.
 > **Atrás de proxy (Cloud Run, load balancer):** a assinatura inclui a URL que
 > o HubSpot chamou. Defina `WEBHOOK_URL_PUBLICA` com a URL exata cadastrada no
 > app, senão o esquema/host vistos pelo serviço podem diferir e tudo vira 401.
+
+## Assinatura e plano do HubSpot
+
+| Versão | Headers | Cálculo | Quem envia |
+| --- | --- | --- | --- |
+| v3 | `X-HubSpot-Signature-v3`, `X-HubSpot-Request-Timestamp` | HMAC-SHA256 base64 de método + URI + corpo + timestamp; timestamp com mais de `JANELA_ASSINATURA_SEGUNDOS` é rejeitado | Versão atual documentada |
+| v1 | `X-HubSpot-Signature` (versão `v1` ou ausente) | SHA-256 hex de secret + corpo | Assinaturas de webhook de apps |
+| v2 | `X-HubSpot-Signature`, versão `v2` | SHA-256 hex de secret + método + URI + corpo | Ação "Send a webhook" de workflows |
+
+`ASSINATURAS_ACEITAS` (padrão `v3,v1`) define quais valem. Se a requisição traz
+v3, só a v3 é verificada. A v1 não tem timestamp e não protege contra replay;
+a idempotência por contato limita o efeito. Quando você confirmar qual versão sua
+conta envia, restrinja a lista a ela.
+
+**Plano Starter:** a ação de webhook de workflow exige Data Hub Professional ou
+Enterprise, então no Starter use um app com assinatura de webhook para criação
+de contato (`contact.creation`, ou `object.creation` com `objectType: contact`).
+Desde 26/10/2026 o HubSpot não cria mais apps privados legados; crie o app na
+nova plataforma de desenvolvedor (projects). O secret de validação é o client
+secret do app. Limites da API no Starter: 100 requisições a cada 10 s por app e
+250.000 por dia por conta.
 
 ## Execução local
 

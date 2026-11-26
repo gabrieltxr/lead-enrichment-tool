@@ -1,0 +1,5 @@
+{
+  "message": "CNPJ 11222333000181 não encontrado.",
+  "type": "service_error",
+  "name": "CnpjPromiseError"
+}

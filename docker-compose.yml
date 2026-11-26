@@ -41,6 +41,19 @@ services:
       migrate:
         condition: service_completed_successfully
 
+  worker:
+    build:
+      context: .
+      target: base
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+psycopg2://leads:leads@db:5432/leads
+    command: ["python", "-m", "app.servicos.worker"]
+    restart: unless-stopped
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
   tests:
     build:
       context: .

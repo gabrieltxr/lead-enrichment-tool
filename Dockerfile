@@ -9,6 +9,7 @@ WORKDIR /app
 
 COPY pyproject.toml ./
 COPY app ./app
+COPY scripts ./scripts
 RUN pip install .
 
 COPY alembic.ini ./

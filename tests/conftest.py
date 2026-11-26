@@ -13,3 +13,14 @@ os.environ.setdefault(
     os.environ.get("TEST_DATABASE_URL", "postgresql+psycopg2://invalido@localhost:1/nada"),
 )
 os.environ["WEBHOOK_URL_PUBLICA"] = ""
+
+import pytest  # noqa: E402
+from tenacity import wait_none  # noqa: E402
+
+
+@pytest.fixture(autouse=True)
+def _sem_espera_no_retry(monkeypatch):
+    """Retry sem backoff real nos testes (a política continua a mesma)."""
+    import app.utils.retry as retry
+
+    monkeypatch.setattr(retry, "wait_exponential_jitter", lambda **_: wait_none())

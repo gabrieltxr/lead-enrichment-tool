@@ -55,6 +55,13 @@ class EnriquecimentoEvento(Base):
     )
     processado_em: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     erro: Mapped[str | None] = mapped_column(Text)
+    # Quando o evento pode ser (re)tentado: backoff entre tentativas e reserva
+    # enquanto está em processamento.
+    proxima_tentativa_em: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    # Nota criada no HubSpot; evita nota duplicada ao reprocessar.
+    hubspot_nota_id: Mapped[str | None] = mapped_column(String(32))
 
 
 class EnriquecimentoCampo(Base):
@@ -62,6 +69,9 @@ class EnriquecimentoCampo(Base):
     __table_args__ = (
         CheckConstraint(
             "confianca >= 0 AND confianca <= 1", name="ck_enriquecimento_campo_confianca"
+        ),
+        UniqueConstraint(
+            "evento_id", "campo", "fonte", name="uq_enriquecimento_campo_evento_campo_fonte"
         ),
     )
 
@@ -74,3 +84,5 @@ class EnriquecimentoCampo(Base):
     fonte: Mapped[str] = mapped_column(String(50), nullable=False)
     confianca: Mapped[Decimal] = mapped_column(Numeric(3, 2), nullable=False)
     aplicado: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=false())
+    # Por que foi ou não aplicado (ex.: campo_vazio, campo_manual, confianca_baixa).
+    motivo: Mapped[str | None] = mapped_column(String(50))

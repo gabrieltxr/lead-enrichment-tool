@@ -1,5 +1,6 @@
 """Configuração da aplicação, lida de variáveis de ambiente (ou do arquivo .env)."""
 
+from decimal import Decimal
 from functools import lru_cache
 
 from pydantic import Field, SecretStr, field_validator
@@ -18,11 +19,34 @@ class Settings(BaseSettings):
 
     database_url: str
 
+    hubspot_url_base: str = "https://api.hubapi.com"
+    brasilapi_url_base: str = "https://brasilapi.com.br/api/cnpj/v1"
+
+    # Nomes das propriedades no HubSpot (blueprint: ajuste por conta).
+    propriedade_email: str = "email"
+    propriedade_cnpj: str = "cnpj"
+    propriedade_origem: str = "origem_enriquecimento"
+    propriedade_data: str = "data_enriquecimento"
+    # Campo interno -> propriedade de contato. Campos fora do mapa são só auditados.
+    mapa_propriedades: dict[str, str] = {
+        "razao_social": "company",
+        "municipio": "city",
+        "uf": "state",
+        "cep": "zip",
+        "endereco": "address",
+        "cnae_principal": "industry",
+    }
+    confianca_minima: Decimal = Field(default=Decimal("0.70"), ge=0, le=1)
+
     fonte_dominio_ativa: bool = False
     provedor_dominio_api_key: SecretStr | None = None
     limite_consumo_mensal_provedor: int = Field(default=1000, ge=0)
 
     max_tentativas: int = Field(default=5, ge=1)
+    worker_intervalo_segundos: float = Field(default=5.0, gt=0)
+    worker_tamanho_lote: int = Field(default=10, ge=1)
+    # Tempo que um evento fica reservado para um worker antes de poder ser retomado.
+    worker_reserva_segundos: int = Field(default=600, ge=30)
     log_level: str = "INFO"
 
     @field_validator("assinaturas_aceitas")

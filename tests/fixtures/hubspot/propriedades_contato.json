@@ -1,0 +1,12 @@
+{
+  "results": [
+    {"name": "email", "label": "Email", "type": "string", "fieldType": "text", "groupName": "contactinformation"},
+    {"name": "company", "label": "Company Name", "type": "string", "fieldType": "text", "groupName": "contactinformation"},
+    {"name": "city", "label": "City", "type": "string", "fieldType": "text", "groupName": "contactinformation"},
+    {"name": "state", "label": "State/Region", "type": "string", "fieldType": "text", "groupName": "contactinformation"},
+    {"name": "zip", "label": "Postal Code", "type": "string", "fieldType": "text", "groupName": "contactinformation"},
+    {"name": "address", "label": "Street Address", "type": "string", "fieldType": "text", "groupName": "contactinformation"},
+    {"name": "industry", "label": "Industry", "type": "string", "fieldType": "text", "groupName": "contactinformation"},
+    {"name": "cnpj", "label": "CNPJ", "type": "string", "fieldType": "text", "groupName": "contactinformation"}
+  ]
+}

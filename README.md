@@ -4,9 +4,16 @@ Serviço que recebe eventos de criação de contato do HubSpot, enriquece o
 contato com fontes externas e grava o resultado de volta no CRM, com auditoria
 no PostgreSQL.
 
-**Estado atual: Fase 1 (base e ingestão).** O webhook valida a assinatura e
-grava cada contato criado em `enriquecimento_evento` com status `pendente`.
-O worker e as fontes chegam na Fase 2.
+**Estado atual: Fase 2 (worker e fonte CNPJ).** O webhook grava cada contato
+criado como `pendente`; o worker lê o contato no HubSpot, consulta a BrasilAPI
+pelo CNPJ, aplica as regras de confiança, grava as propriedades e uma nota e
+registra cada campo na auditoria. A fonte por domínio e as métricas chegam na
+Fase 3.
+
+Este repositório é um **blueprint**: nada depende de uma conta específica. Os
+nomes das propriedades e o mapeamento de campos são configuráveis
+(`PROPRIEDADE_*`, `MAPA_PROPRIEDADES`), e as propriedades de controle são
+criadas pelo worker se não existirem.
 
 ## Como funciona a ingestão
 
@@ -49,6 +56,70 @@ Desde 26/10/2026 o HubSpot não cria mais apps privados legados; crie o app na
 nova plataforma de desenvolvedor (projects). O secret de validação é o client
 secret do app. Limites da API no Starter: 100 requisições a cada 10 s por app e
 250.000 por dia por conta.
+
+## Worker
+
+```bash
+python -m app.servicos.worker      # ou o serviço `worker` do docker compose
+```
+
+Ao iniciar, cria no HubSpot as propriedades `origem_enriquecimento` (texto) e
+`data_enriquecimento` (data) se faltarem, e avisa se alguma propriedade de
+`MAPA_PROPRIEDADES` não existe na conta. Depois, em loop:
+
+1. Reserva até `WORKER_TAMANHO_LOTE` eventos com `SELECT ... FOR UPDATE SKIP
+   LOCKED`, marca `processando`, soma 1 em `tentativas` e reserva o evento por
+   `WORKER_RESERVA_SEGUNDOS`. Se o worker cair, o evento volta para a fila
+   quando a reserva vence. Vários workers podem rodar juntos.
+2. Lê o contato, normaliza o domínio do e-mail (ignorando provedores como
+   gmail.com e hotmail.com) e o CNPJ da propriedade `PROPRIEDADE_CNPJ`
+   (dígitos verificadores conferidos).
+3. Consulta cada fonte aplicável. A BrasilAPI só roda com CNPJ válido, tem
+   timeout de 10 s e até 4 tentativas com backoff exponencial em timeout, falha
+   de rede, 429 e 5xx. CNPJ não encontrado (404) não é erro.
+4. Aplica as regras (abaixo), grava as propriedades e a auditoria na mesma
+   transação: se a escrita no HubSpot falhar, a auditoria é desfeita.
+5. Cria uma nota no contato listando campos e fontes, **sem os valores**.
+6. Marca `concluido`.
+
+Em caso de falha, o evento volta para `pendente` com espera de 1, 2, 4... min
+(até 1 h). Ao atingir `MAX_TENTATIVAS`, ou num erro permanente (ex.: contato
+não existe, HTTP 4xx), vira `erro` com a mensagem.
+
+### Regras de gravação
+
+| Situação | Grava? | `motivo` na auditoria |
+| --- | --- | --- |
+| Confiança abaixo de `CONFIANCA_MINIMA` (0.70) | não | `confianca_baixa` |
+| Campo sem propriedade em `MAPA_PROPRIEDADES` | não | `sem_mapeamento` |
+| Propriedade vazia no HubSpot | sim | `campo_vazio` |
+| Valor atual não foi gravado pelo serviço (manual) | **nunca** | `campo_manual` |
+| Valor atual é a última gravação do serviço e a nova confiança é maior | sim | `confianca_maior` |
+| Idem, com confiança igual ou menor | não | `confianca_nao_maior` |
+| Valor atual já é o novo valor | não | `ja_aplicado` / `valor_igual_existente` |
+
+CNPJ exato tem confiança 1.00. `origem_enriquecimento` recebe as fontes que
+gravaram algo e `data_enriquecimento` a data da gravação.
+
+### Idempotência
+
+Processar o mesmo evento de novo não duplica nada: a auditoria tem chave única
+`(evento_id, campo, fonte)` com upsert, a nota só é criada se
+`hubspot_nota_id` estiver vazio, e valores já gravados não são regravados.
+
+### Reprocessar eventos com erro
+
+```bash
+python -m scripts.reprocessar --todos --dry-run
+python -m scripts.reprocessar --ids 12 15
+```
+
+Volta os eventos para `pendente` com `tentativas` zerado.
+
+### Limites de API
+
+O cliente do HubSpot limita a 90 requisições a cada 10 s (o Starter permite
+100 por app) e repete 429 com backoff. A BrasilAPI é limitada a 3 por segundo.
 
 ## Execução local
 
@@ -108,6 +179,15 @@ Ver `.env.example`. Obrigatórias: `HUBSPOT_TOKEN`, `HUBSPOT_WEBHOOK_SECRET`,
 | `pydantic-settings` | Desde o Pydantic v2, `BaseSettings` vive neste pacote oficial. |
 | `psycopg2-binary` | Mesmo driver `psycopg2`, distribuído com wheels; evita compilar libpq na imagem. Trocar por `psycopg2` se a política de deploy exigir build a partir do fonte. |
 | `pytest-cov` (dev) | Medir a cobertura mínima de 80% pedida na seção 9. |
+
+## LGPD
+
+- Logs só têm IDs; a nota no HubSpot não contém valores.
+- Sócios (QSA) e telefones da resposta da BrasilAPI são descartados.
+- Atenção: a razão social de MEI costuma conter o nome (e às vezes o CPF) do
+  titular, ou seja, é dado pessoal.
+- **Pendente:** definir o responsável e a base legal do tratamento antes de
+  rodar em produção.
 
 ## Decisões da Fase 1
 

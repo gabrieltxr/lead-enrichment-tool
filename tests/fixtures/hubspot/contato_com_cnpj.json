@@ -1,0 +1,19 @@
+{
+  "id": "101",
+  "properties": {
+    "createdate": "2026-11-26T17:00:00.000Z",
+    "email": "contato@exemplo-empresa.com.br",
+    "cnpj": "19.131.243/0001-97",
+    "company": null,
+    "city": null,
+    "state": null,
+    "zip": null,
+    "address": null,
+    "industry": null,
+    "hs_object_id": "101",
+    "lastmodifieddate": "2026-11-26T17:00:00.000Z"
+  },
+  "createdAt": "2026-11-26T17:00:00.000Z",
+  "updatedAt": "2026-11-26T17:00:00.000Z",
+  "archived": false
+}

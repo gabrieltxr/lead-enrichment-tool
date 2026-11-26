@@ -2,7 +2,7 @@
 
 from functools import lru_cache
 
-from pydantic import Field, SecretStr
+from pydantic import Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -13,6 +13,8 @@ class Settings(BaseSettings):
     hubspot_webhook_secret: SecretStr
     webhook_url_publica: str | None = None
     janela_assinatura_segundos: int = Field(default=300, gt=0)
+    # Versões de assinatura aceitas, separadas por vírgula (v1, v2, v3).
+    assinaturas_aceitas: str = "v3,v1"
 
     database_url: str
 
@@ -22,6 +24,18 @@ class Settings(BaseSettings):
 
     max_tentativas: int = Field(default=5, ge=1)
     log_level: str = "INFO"
+
+    @field_validator("assinaturas_aceitas")
+    @classmethod
+    def _validar_assinaturas(cls, valor: str) -> str:
+        versoes = {v.strip().lower() for v in valor.split(",") if v.strip()}
+        if not versoes or not versoes <= {"v1", "v2", "v3"}:
+            raise ValueError("ASSINATURAS_ACEITAS deve listar v1, v2 e/ou v3")
+        return ",".join(sorted(versoes))
+
+    @property
+    def versoes_assinatura(self) -> frozenset[str]:
+        return frozenset(self.assinaturas_aceitas.split(","))
 
 
 @lru_cache

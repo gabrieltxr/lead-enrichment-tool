@@ -109,3 +109,28 @@ def test_url_publica_configurada_e_usada_na_assinatura(client, sessao, monkeypat
 
     assert _postar(client, corpo, headers_assinados(corpo)).status_code == 401
     assert _postar(client, corpo, headers_assinados(corpo, uri=url_publica)).status_code == 200
+
+
+def test_assinatura_v1_de_webhook_de_app_salva_evento(client, sessao):
+    import hashlib
+
+    corpo = corpo_json([evento(888)])
+    headers = {
+        "Content-Type": "application/json",
+        "X-HubSpot-Signature": hashlib.sha256(b"segredo-de-teste" + corpo).hexdigest(),
+        "X-HubSpot-Signature-Version": "v1",
+    }
+    assert _postar(client, corpo, headers).status_code == 200
+    assert [e.hubspot_contact_id for e in _eventos(sessao)] == ["888"]
+
+
+def test_assinatura_v1_desligada_retorna_401(client, sessao, monkeypatch):
+    import hashlib
+
+    from app.config import get_settings
+
+    monkeypatch.setattr(get_settings(), "assinaturas_aceitas", "v3")
+    corpo = corpo_json([evento(889)])
+    headers = {"X-HubSpot-Signature": hashlib.sha256(b"segredo-de-teste" + corpo).hexdigest()}
+    assert _postar(client, corpo, headers).status_code == 401
+    assert _eventos(sessao) == []

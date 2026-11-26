@@ -21,7 +21,7 @@ from sqlalchemy.orm import Session
 from app.config import Settings, get_settings
 from app.db.models import EnriquecimentoEvento
 from app.db.session import get_session
-from app.hubspot.assinatura import assinatura_valida
+from app.hubspot.assinatura import requisicao_autentica
 from app.hubspot.schemas import TIPO_CONTATO_CRIADO, EventoWebhook, LoteWebhook
 from app.utils.logging import configurar_logging
 
@@ -67,14 +67,14 @@ def _gravar_eventos(sessao: Session, eventos: list[EventoWebhook]) -> int:
 @app.post("/webhooks/hubspot")
 async def receber_webhook(request: Request, sessao: SessaoDep, settings: SettingsDep) -> dict:
     corpo = await request.body()
-    if not assinatura_valida(
+    if not requisicao_autentica(
         segredo=settings.hubspot_webhook_secret.get_secret_value(),
         metodo=request.method,
         uri=_uri_assinada(request, settings),
         corpo=corpo,
-        timestamp=request.headers.get("X-HubSpot-Request-Timestamp"),
-        assinatura=request.headers.get("X-HubSpot-Signature-v3"),
+        headers=request.headers,
         janela_segundos=settings.janela_assinatura_segundos,
+        versoes_aceitas=settings.versoes_assinatura,
     ):
         logger.warning("webhook com assinatura invalida")
         raise HTTPException(status_code=401, detail="assinatura inválida")

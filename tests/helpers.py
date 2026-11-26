@@ -33,3 +33,12 @@ def headers_assinados(corpo: bytes, segredo: str = SEGREDO, uri: str = URL_WEBHO
 
 def corpo_json(dados: object) -> bytes:
     return json.dumps(dados).encode()
+
+
+from pathlib import Path  # noqa: E402
+
+FIXTURES = Path(__file__).parent / "fixtures"
+
+
+def fixture_json(caminho: str) -> dict:
+    return json.loads((FIXTURES / caminho).read_text(encoding="utf-8"))

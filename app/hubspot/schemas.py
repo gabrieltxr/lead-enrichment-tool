@@ -23,3 +23,25 @@ class EventoWebhook(BaseModel):
 
 class LoteWebhook(RootModel[Annotated[list[EventoWebhook], Field(min_length=1, max_length=1000)]]):
     pass
+
+
+def definicoes_propriedades_controle(nome_origem: str, nome_data: str) -> list[dict]:
+    """Propriedades customizadas criadas no HubSpot se ainda não existirem."""
+    return [
+        {
+            "name": nome_origem,
+            "label": "Origem do enriquecimento",
+            "description": "Fontes que preencheram campos automaticamente.",
+            "groupName": "contactinformation",
+            "type": "string",
+            "fieldType": "text",
+        },
+        {
+            "name": nome_data,
+            "label": "Data do enriquecimento",
+            "description": "Data da última gravação automática de campos.",
+            "groupName": "contactinformation",
+            "type": "date",
+            "fieldType": "date",
+        },
+    ]

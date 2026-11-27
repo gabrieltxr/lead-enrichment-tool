@@ -1,15 +1,16 @@
-"""API: webhook do HubSpot e healthcheck.
+"""API: webhook do HubSpot, healthcheck e métricas.
 
 O endpoint do webhook só valida e grava o evento como `pendente`. Todo o
-processamento acontece no worker (Fase 2).
+processamento acontece no worker. `GET /metricas` expõe só contagens.
 """
 
+import hmac
 import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from typing import Annotated
 
-from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi import Depends, FastAPI, Header, HTTPException, Request
 from fastapi.concurrency import run_in_threadpool
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
@@ -23,6 +24,7 @@ from app.db.models import EnriquecimentoEvento
 from app.db.session import get_session
 from app.hubspot.assinatura import requisicao_autentica
 from app.hubspot.schemas import TIPO_CONTATO_CRIADO, EventoWebhook, LoteWebhook
+from app.servicos.metricas import calcular_metricas
 from app.utils.logging import configurar_logging
 
 logger = logging.getLogger(__name__)
@@ -104,3 +106,24 @@ def health(sessao: SessaoDep) -> JSONResponse:
         logger.exception("healthcheck: banco indisponivel")
         return JSONResponse(status_code=503, content={"status": "erro", "banco": "indisponivel"})
     return JSONResponse(content={"status": "ok", "banco": "ok"})
+
+
+def _autorizar_metricas(settings: Settings, authorization: str | None) -> None:
+    if settings.metricas_token is None or not settings.metricas_token.get_secret_value():
+        return
+    esperado = f"Bearer {settings.metricas_token.get_secret_value()}"
+    if not authorization or not hmac.compare_digest(authorization.encode(), esperado.encode()):
+        raise HTTPException(status_code=401, detail="token inválido")
+
+
+@app.get("/metricas")
+def metricas(
+    sessao: SessaoDep,
+    settings: SettingsDep,
+    authorization: Annotated[str | None, Header()] = None,
+) -> dict:
+    _autorizar_metricas(settings, authorization)
+    limites = {}
+    if settings.fonte_dominio_ativa:
+        limites[settings.provedor_dominio_nome] = settings.limite_consumo_mensal_provedor
+    return calcular_metricas(sessao, limites)

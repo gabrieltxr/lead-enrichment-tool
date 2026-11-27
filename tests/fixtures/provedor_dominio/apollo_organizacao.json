@@ -1,27 +1,1450 @@
 {
   "organization": {
     "id": "5e66b6381e05b4008c8331b8",
-    "name": "Exemplo Global",
-    "website_url": "http://www.exemplo-global.test",
-    "linkedin_url": "http://www.linkedin.com/company/exemplo-global",
-    "phone": null,
-    "primary_phone": {"number": "+1 202-555-0100"},
-    "primary_domain": "exemplo-global.test",
-    "industry": "information technology & services",
-    "industries": ["information technology & services"],
-    "keywords": ["sales engagement", "b2b"],
-    "estimated_num_employees": 1600,
-    "annual_revenue": 100000000,
-    "annual_revenue_printed": "100M",
+    "name": "Apollo.io",
+    "website_url": "http://www.apollo.io",
+    "angellist_url": null,
+    "linkedin_url": "http://www.linkedin.com/company/apolloio",
+    "twitter_url": "https://twitter.com/MeetApollo/",
+    "facebook_url": "https://facebook.com/MeetApollo/",
+    "languages": [],
+    "alexa_ranking": 3514,
+    "linkedin_uid": "18511550",
     "founded_year": 2015,
-    "short_description": "Empresa fictícia usada nos testes.",
-    "raw_address": "440 N Barranca Ave, Covina, California 91723, US",
-    "street_address": "440 N Barranca Ave",
-    "city": "Covina",
+    "publicly_traded_symbol": null,
+    "publicly_traded_exchange": null,
+    "logo_url": "https://zenprospect-production.s3.amazonaws.com/uploads/pictures/6a06490b38457d00013edfc8/picture",
+    "crunchbase_url": null,
+    "primary_domain": "apollo.io",
+    "sic_codes": [
+      "7375",
+      "7372"
+    ],
+    "naics_codes": [
+      "54161",
+      "513210"
+    ],
+    "industry": "information technology & services",
+    "estimated_num_employees": 800,
+    "keywords": [
+      "sales engagement",
+      "lead generation",
+      "predictive analytics",
+      "lead scoring",
+      "sales strategy",
+      "conversation intelligence",
+      "sales enablement",
+      "lead routing",
+      "sales development",
+      "email engagement",
+      "revenue intelligence",
+      "sales operations",
+      "sales intelligence",
+      "lead intelligence",
+      "prospecting",
+      "b2b data",
+      "software development",
+      "automated sales workflows",
+      "sales intelligence solutions",
+      "sales automation software",
+      "ai-driven sales insights",
+      "lead enrichment",
+      "data validation",
+      "sales data platform",
+      "sales engagement automation ai",
+      "multichannel outreach",
+      "sales automation ai",
+      "sales workflow automation",
+      "crm data synchronization ai",
+      "ai-powered lead scoring",
+      "data accuracy",
+      "sales engagement automation",
+      "sales crm",
+      "sales enablement tools",
+      "email automation",
+      "sales automation tools ai",
+      "crm data enrichment",
+      "sales acceleration",
+      "lead scoring algorithms",
+      "ai assistants",
+      "sales prospecting platform ai",
+      "crm enrichment",
+      "crm data management",
+      "lead discovery tools",
+      "ai sales assistant",
+      "sales management tools",
+      "sales analytics",
+      "sales intelligence tools",
+      "workflow automation",
+      "crm enrichment tools",
+      "sales prospecting automation",
+      "sales prospecting",
+      "services",
+      "software publishing",
+      "sales pipeline ai",
+      "sales management",
+      "sales tools",
+      "sales analytics and insights",
+      "sales pipeline tools",
+      "marketing automation",
+      "multi-channel sales",
+      "sales analytics platform",
+      "sales data enrichment",
+      "lead discovery",
+      "b2b sales platform",
+      "crm data synchronization",
+      "data validation ai",
+      "crm integration",
+      "b2b",
+      "sales pipeline management",
+      "sales productivity",
+      "data validation services ai",
+      "sales prospect database",
+      "information technology and services",
+      "sales analytics tools",
+      "ai-powered outreach",
+      "lead enrichment services",
+      "multi-channel sales automation",
+      "sales acceleration tools",
+      "sales intelligence platform",
+      "sales pipeline",
+      "automated follow-up",
+      "ai-powered sales",
+      "sales engagement tools",
+      "sales engagement ai",
+      "automation tools",
+      "sales engagement platform ai",
+      "ai sales automation",
+      "sales automation workflows",
+      "contact database",
+      "contact data",
+      "contact verification ai",
+      "b2b database",
+      "crm integrations",
+      "sales prospecting automation ai",
+      "sales enablement platform",
+      "sales prospecting tools",
+      "automated follow-up ai",
+      "sales growth",
+      "sales workflows",
+      "sales engagement ai tools",
+      "customer data",
+      "sales and marketing",
+      "customer data platform",
+      "customer acquisition",
+      "deal management",
+      "sales automation tools",
+      "sales automation",
+      "crm enrichment ai",
+      "prospect data",
+      "lead scoring ai",
+      "management consulting services",
+      "sales outreach",
+      "sales prospecting platform",
+      "sales acceleration ai",
+      "contact verification",
+      "sales engagement platform",
+      "lead scoring algorithms ai",
+      "data enrichment",
+      "lead scoring and prioritization",
+      "sales analytics ai",
+      "sales platform",
+      "sales prospecting data",
+      "sales prospecting tools ai",
+      "multi-channel outreach tools",
+      "lead discovery ai",
+      "sales prospecting ai",
+      "crm enrichment tools ai",
+      "data validation services",
+      "pipeline management",
+      "automated workflows",
+      "analytics and reporting",
+      "coaching and feedback",
+      "signal-based prospecting",
+      "inbound optimization",
+      "contact and account search",
+      "email outreach automation",
+      "meeting scheduling",
+      "multi-channel outreach",
+      "lead qualification",
+      "form optimization",
+      "sales performance improvement",
+      "live data network",
+      "revops tools",
+      "account-based prospecting",
+      "meeting preparedness",
+      "ai recommendations",
+      "webinar integration",
+      "sales coaching",
+      "team collaboration",
+      "sales insights",
+      "buyer's journey tracking",
+      "market intelligence",
+      "lead prioritization",
+      "customer journey mapping",
+      "sales funnel tracking",
+      "data-driven sales",
+      "email deliverability management",
+      "automated lead follow-up",
+      "predictive analytics for sales",
+      "sales campaign management",
+      "sales productivity tools",
+      "sales performance management",
+      "finance",
+      "saas",
+      "marketing & advertising",
+      "sales",
+      "information technology & services",
+      "enterprise software",
+      "enterprises",
+      "computer software",
+      "sales & marketing",
+      "financial services"
+    ],
+    "organization_revenue_printed": "150M",
+    "organization_revenue": 150000000.0,
+    "industries": [
+      "information technology & services",
+      "computer software"
+    ],
+    "secondary_industries": [
+      "computer software"
+    ],
+    "snippets_loaded": true,
+    "industry_tag_id": "5567cd4773696439b10b0000",
+    "industry_tag_hash": {
+      "information technology & services": "5567cd4773696439b10b0000",
+      "computer software": "5567cd4e7369643b70010000"
+    },
+    "retail_location_count": 0,
+    "raw_address": "415 Mission St, Floor 37, San Francisco, California 94105, US",
+    "street_address": "415 Mission St",
+    "city": "San Francisco",
     "state": "California",
-    "postal_code": "91723",
+    "postal_code": "94105-2301",
     "country": "United States",
-    "technology_names": ["Salesforce"],
-    "account": {"phone": "+1(202) 555-0114", "name": "Exemplo Global"}
+    "owned_by_organization_id": null,
+    "num_languages": 0,
+    "num_retail_locations": 0,
+    "short_description": "Apollo.io is an AI-powered B2B sales intelligence and engagement platform based in San Francisco, California. Founded in 2015, the company has quickly grown to become a unicorn, achieving a valuation of approximately $1.6 billion in 2023. Apollo.io provides a comprehensive suite of tools designed to enhance the sales lifecycle, featuring a massive verified contact database with over 275 million global contacts and 35 million companies.\n\nThe platform utilizes advanced AI capabilities to streamline prospecting and outreach. It offers automated tools for finding ideal buyers, personalized messaging, and multi-channel outreach automation across email, phone, and social media. Additionally, Apollo.io integrates seamlessly with major CRM systems, providing real-time insights and analytics to optimize sales performance. With a user base of millions across more than 500,000 organizations, Apollo.io is a trusted solution for revenue teams and sales operators looking to improve their sales strategies.",
+    "total_funding": 253400000,
+    "total_funding_printed": "253.4M",
+    "latest_funding_round_date": "2023-08-01T00:00:00.000+00:00",
+    "latest_funding_stage": "Series D",
+    "latest_funding_detected_at": "2026-01-13T07:57:35.829Z",
+    "funding_events": [
+      {
+        "id": "6574c1ff9b797d0001fdab1b",
+        "date": "2023-08-01T00:00:00.000+00:00",
+        "news_url": "https://thetechportal.com/2023/08/29/apollo-io-b2b-sales-leads-platform-100-million-series-d-nexus-venture-sequoia-capital/",
+        "detected_at": "2023-12-09T19:37:35.079Z",
+        "type": "Series D",
+        "investors": "Bain Capital Ventures, Nexus Venture Partners, Sequoia, Tribe Capital",
+        "amount": "100M",
+        "currency": "$"
+      },
+      {
+        "id": "624f4dfec786590001768016",
+        "date": "2022-03-01T00:00:00.000+00:00",
+        "news_url": "https://techcrunch.com/2022/03/03/apollo-io-raises-110m-as-its-crosses-16k-paying-users-of-its-sales-intelligence-platform/",
+        "detected_at": "2022-04-07T20:47:58.254Z",
+        "type": "Series C",
+        "investors": "Nexus Venture Partners, Sequoia, NewView Capital, Tribe Capital",
+        "amount": "110M",
+        "currency": "$"
+      },
+      {
+        "id": "61b13677623110000186a478",
+        "date": "2021-11-01T00:00:00.000+00:00",
+        "news_url": null,
+        "detected_at": "2021-12-08T22:49:27.404Z",
+        "type": "Series B",
+        "investors": "Nexus Venture Partners, NewView Capital, Tribe Capital",
+        "amount": "32M",
+        "currency": "$"
+      },
+      {
+        "id": "5ffe93caa54d75077c59acef",
+        "date": "2018-06-01T00:00:00.000+00:00",
+        "news_url": "https://techcrunch.com/2018/06/26/yc-grad-zenprospect-rebrands-as-apollo-lands-7-m-series-a/",
+        "detected_at": "2021-01-13T06:31:38.480Z",
+        "type": "Series A",
+        "investors": "Nexus Venture Partners, Y Combinator, Social Capital",
+        "amount": "7M",
+        "currency": "$"
+      },
+      {
+        "id": "6574c1ff9b797d0001fdab20",
+        "date": "2016-10-01T00:00:00.000+00:00",
+        "news_url": null,
+        "detected_at": "2023-12-09T19:37:35.237Z",
+        "type": "Other",
+        "investors": "Y Combinator, SV Angel, Social Capital, Nexus Venture Partners",
+        "amount": "2.2M",
+        "currency": "$"
+      },
+      {
+        "id": "6965faefeb0fd80001eeebdf",
+        "date": "2016-05-01T00:00:00.000+00:00",
+        "news_url": null,
+        "detected_at": "2026-01-13T07:57:35.829Z",
+        "type": "Seed",
+        "investors": "ZhenFund, Nexus Venture Partners, Struck Capital, Argonautic Ventures, Social Capital, CRCM Ventures, SV Angel",
+        "amount": "2.2M",
+        "currency": "$"
+      }
+    ],
+    "suborganizations": [
+      {
+        "id": "60c1ca997e2c1400a40968e3",
+        "name": "Pocus (acquired by Apollo.io)",
+        "website_url": "http://www.pocus.com",
+        "industries": [
+          "information technology & services",
+          "computer software"
+        ],
+        "estimated_num_employees": 24,
+        "country": "United States"
+      }
+    ],
+    "num_suborganizations": 1,
+    "annual_revenue_printed": "150M",
+    "annual_revenue": 150000000.0,
+    "technology_names": [
+      "6sense",
+      "AI",
+      "Adobe Experience Cloud",
+      "Adobe Marketo Engage",
+      "Airflow",
+      "Airtable",
+      "Amazon AWS",
+      "Amazon Simple Email Service",
+      "Amplitude",
+      "Amplitude",
+      "Ansible",
+      "Anthropic",
+      "Anthropic Claude",
+      "Apache Kafka",
+      "Apache Lucene",
+      "Apache Spark",
+      "Apex",
+      "Apollo",
+      "Apple Business Manager",
+      "Apple School Manager",
+      "Atlassian",
+      "Bing",
+      "Brex",
+      "CSS",
+      "CaptivateIQ",
+      "ChatGPT",
+      "Chili Piper",
+      "Claude Code",
+      "CloudFlare",
+      "CloudFlare CDN",
+      "Cloudflare Bot Management",
+      "Cloudflare DNS",
+      "Cloudflare Rocket Loader",
+      "Cloudflare Turnstile",
+      "Cloudflare Workers",
+      "Crossbeam",
+      "CrowdStrike",
+      "Cursor",
+      "Darwinbox",
+      "Databricks",
+      "Docker",
+      "DocuSign",
+      "Elasticsearch",
+      "Electron",
+      "Element UI",
+      "Emotion",
+      "Facebook Pixel",
+      "Fastapi",
+      "Figma",
+      "Fivetran",
+      "Flow",
+      "Gem",
+      "GitHub",
+      "GitHub Actions",
+      "GitHub Copilot",
+      "Gmail",
+      "Go",
+      "Gong",
+      "Google Ads",
+      "Google Analytics",
+      "Google Cloud",
+      "Google Cloud CDN",
+      "Google Cloud DNS",
+      "Google Cloud Hosting",
+      "Google Cloud Load Balancing",
+      "Google Cloud Looker",
+      "Google Drive",
+      "Google Kubernetes Engine",
+      "Google Meet",
+      "Google Search Console",
+      "Google Sheets",
+      "Google Tag Manager",
+      "Google Workspace",
+      "Grafana",
+      "GraphQL",
+      "Greenhouse",
+      "HREF Lang",
+      "HSTS",
+      "HTML",
+      "Hex",
+      "HubSpot Marketing Hub",
+      "Hubspot",
+      "Intercom",
+      "Ironclad",
+      "JFrog",
+      "JFrog Pipelines",
+      "Java",
+      "JavaScript",
+      "Jira",
+      "Jira Service Management",
+      "Kandji",
+      "Kibana",
+      "Kubernetes",
+      "LinkedIn Ads",
+      "LinkedIn Recruiter",
+      "Lovable",
+      "MUI",
+      "Macaron",
+      "MailChimp",
+      "Mailchimp Mandrill",
+      "Mailgun",
+      "Microsoft 365",
+      "Microsoft Excel",
+      "Mixpanel",
+      "Mobile Friendly",
+      "MongoDB",
+      "Multilingual",
+      "MySQL",
+      "NS1",
+      "Navan",
+      "NetSuite",
+      "Netlify",
+      "Next.js",
+      "Node.js",
+      "Notion",
+      "NumPy",
+      "OAuth 2.0",
+      "Okta",
+      "Open Graph",
+      "OpenAI",
+      "OpenAI Codex",
+      "Outreach.io",
+      "PHP",
+      "Panther",
+      "PartnerStack",
+      "Pipedrive",
+      "Playwright",
+      "Postman",
+      "Priority Hints",
+      "Python",
+      "REST",
+      "Radix UI",
+      "Ramp",
+      "React",
+      "Reddit",
+      "Redis",
+      "Redux",
+      "Ruby",
+      "Ruby On Rails",
+      "SQL",
+      "SalesLoft",
+      "Salesforce",
+      "Salesforce Lightning Web Components",
+      "Salesforce Platform",
+      "Scala",
+      "Sendgrid",
+      "Slack",
+      "Snowflake",
+      "Sonar",
+      "Sqlalchemy",
+      "Squarespace",
+      "Statsig",
+      "Stripe",
+      "Tailwind",
+      "Tailwind CSS",
+      "Terraform",
+      "TikTok",
+      "Tray.ai",
+      "Tray.io",
+      "TypeScript",
+      "Varicent",
+      "Viewport Meta",
+      "Vitally",
+      "VueJS",
+      "Wistia",
+      "WordPress.org",
+      "Wordpress",
+      "Workato",
+      "X (Twitter)",
+      "Xactly",
+      "YouTube",
+      "Zapier",
+      "Zendesk",
+      "Zendesk Support Suite",
+      "Zendesk for Service",
+      "Zip",
+      "Zoho",
+      "Zoom Meetings",
+      "dbt",
+      "dbt Cloud",
+      "pandas",
+      "scikit-learn",
+      "shadcn/ui",
+      "webpack"
+    ],
+    "current_technologies": [
+      {
+        "uid": "6sense",
+        "name": "6sense",
+        "category": "Lead Generation Software"
+      },
+      {
+        "uid": "ai",
+        "name": "AI",
+        "category": "AI and Machine Learning Platforms"
+      },
+      {
+        "uid": "adobe_experience_cloud",
+        "name": "Adobe Experience Cloud",
+        "category": "Marketing Automation"
+      },
+      {
+        "uid": "adobe_marketo_engage",
+        "name": "Adobe Marketo Engage",
+        "category": "Marketing Automation"
+      },
+      {
+        "uid": "airflow",
+        "name": "Airflow",
+        "category": "Data Engineering and Streaming"
+      },
+      {
+        "uid": "airtable",
+        "name": "Airtable",
+        "category": "No-Code App Builders"
+      },
+      {
+        "uid": "amazon_aws",
+        "name": "Amazon AWS",
+        "category": "Cloud Services"
+      },
+      {
+        "uid": "amazon_simple_email_service_amazon_ses",
+        "name": "Amazon Simple Email Service",
+        "category": "Email Delivery"
+      },
+      {
+        "uid": "amplitude",
+        "name": "Amplitude",
+        "category": "Analytics and Tracking"
+      },
+      {
+        "uid": "amplitude",
+        "name": "Amplitude",
+        "category": "Analytics and Tracking"
+      },
+      {
+        "uid": "ansible",
+        "name": "Ansible",
+        "category": "Deployment Tools"
+      },
+      {
+        "uid": "anthropic",
+        "name": "Anthropic",
+        "category": "AI and Machine Learning Platforms"
+      },
+      {
+        "uid": "anthropic_claude",
+        "name": "Anthropic Claude",
+        "category": "AI and Machine Learning Platforms"
+      },
+      {
+        "uid": "apache_kafka",
+        "name": "Apache Kafka",
+        "category": "Data Engineering and Streaming"
+      },
+      {
+        "uid": "apache_lucene",
+        "name": "Apache Lucene",
+        "category": "Search Appliances"
+      },
+      {
+        "uid": "apache_spark",
+        "name": "Apache Spark",
+        "category": "Data Engineering and Streaming"
+      },
+      {
+        "uid": "apex",
+        "name": "Apex",
+        "category": "Frameworks and Programming Languages"
+      },
+      {
+        "uid": "apollo",
+        "name": "Apollo",
+        "category": "Frameworks and Programming Languages"
+      },
+      {
+        "uid": "apple_business_manager",
+        "name": "Apple Business Manager",
+        "category": "Enterprise Mobility Management"
+      },
+      {
+        "uid": "apple_school_manager",
+        "name": "Apple School Manager",
+        "category": "Enterprise Mobility Management"
+      },
+      {
+        "uid": "atlassian",
+        "name": "Atlassian",
+        "category": "Communication and Collaboration"
+      },
+      {
+        "uid": "bing",
+        "name": "Bing",
+        "category": "Search Appliances"
+      },
+      {
+        "uid": "brex",
+        "name": "Brex",
+        "category": "Financial Software"
+      },
+      {
+        "uid": "css",
+        "name": "CSS",
+        "category": "Frameworks and Programming Languages"
+      },
+      {
+        "uid": "captivateiq",
+        "name": "CaptivateIQ",
+        "category": "Human Capital Management"
+      },
+      {
+        "uid": "chatgpt",
+        "name": "ChatGPT",
+        "category": "AI and Machine Learning Platforms"
+      },
+      {
+        "uid": "chili_piper",
+        "name": "Chili Piper",
+        "category": "Appointment Scheduling"
+      },
+      {
+        "uid": "claude_code",
+        "name": "Claude Code",
+        "category": "Developer Tools"
+      },
+      {
+        "uid": "cloudflare",
+        "name": "CloudFlare",
+        "category": "Content Delivery Networks"
+      },
+      {
+        "uid": "cloudflare_cdn",
+        "name": "CloudFlare CDN",
+        "category": "Content Delivery Networks"
+      },
+      {
+        "uid": "cloudflare_bot_management",
+        "name": "Cloudflare Bot Management",
+        "category": "Security"
+      },
+      {
+        "uid": "cloudflare_dns",
+        "name": "Cloudflare DNS",
+        "category": "Domain Name Services"
+      },
+      {
+        "uid": "cloudflare_rocket_loader",
+        "name": "Cloudflare Rocket Loader",
+        "category": "Web Accelerators"
+      },
+      {
+        "uid": "cloudflare_turnstile",
+        "name": "Cloudflare Turnstile",
+        "category": "Captcha"
+      },
+      {
+        "uid": "cloudflare_workers",
+        "name": "Cloudflare Workers",
+        "category": "Cloud Services"
+      },
+      {
+        "uid": "crossbeam",
+        "name": "Crossbeam",
+        "category": "Lead Generation Software"
+      },
+      {
+        "uid": "crowdstrike",
+        "name": "CrowdStrike",
+        "category": "Security"
+      },
+      {
+        "uid": "cursor",
+        "name": "Cursor",
+        "category": "Developer Tools"
+      },
+      {
+        "uid": "darwinbox",
+        "name": "Darwinbox",
+        "category": "HR Solutions"
+      },
+      {
+        "uid": "databricks",
+        "name": "Databricks",
+        "category": "Data Engineering and Streaming"
+      },
+      {
+        "uid": "docker",
+        "name": "Docker",
+        "category": "Virtualization and Containers"
+      },
+      {
+        "uid": "docusign",
+        "name": "DocuSign",
+        "category": "Content Management Platform"
+      },
+      {
+        "uid": "elasticsearch",
+        "name": "Elasticsearch",
+        "category": "Search Appliances"
+      },
+      {
+        "uid": "electron",
+        "name": "Electron",
+        "category": "Frameworks and Programming Languages"
+      },
+      {
+        "uid": "element_ui",
+        "name": "Element UI",
+        "category": "CSS and JavaScript Libraries"
+      },
+      {
+        "uid": "emotion",
+        "name": "Emotion",
+        "category": "CSS and JavaScript Libraries"
+      },
+      {
+        "uid": "facebook_pixel",
+        "name": "Facebook Pixel",
+        "category": "Analytics and Tracking"
+      },
+      {
+        "uid": "fastapi",
+        "name": "Fastapi",
+        "category": "Frameworks and Programming Languages"
+      },
+      {
+        "uid": "figma",
+        "name": "Figma",
+        "category": "Design and Publishing Software"
+      },
+      {
+        "uid": "fivetran",
+        "name": "Fivetran",
+        "category": "Data Engineering and Streaming"
+      },
+      {
+        "uid": "flow",
+        "name": "Flow",
+        "category": "E-commerce Platforms"
+      },
+      {
+        "uid": "gem",
+        "name": "Gem",
+        "category": "Frameworks and Programming Languages"
+      },
+      {
+        "uid": "github",
+        "name": "GitHub",
+        "category": "Developer Tools"
+      },
+      {
+        "uid": "github_actions",
+        "name": "GitHub Actions",
+        "category": "Deployment Tools"
+      },
+      {
+        "uid": "github_copilot",
+        "name": "GitHub Copilot",
+        "category": "Developer Tools"
+      },
+      {
+        "uid": "gmail",
+        "name": "Gmail",
+        "category": "Email Providers"
+      },
+      {
+        "uid": "go",
+        "name": "Go",
+        "category": "Frameworks and Programming Languages"
+      },
+      {
+        "uid": "gong",
+        "name": "Gong",
+        "category": "Customer Relationship Management"
+      },
+      {
+        "uid": "google_ads",
+        "name": "Google Ads",
+        "category": "Advertising Networks"
+      },
+      {
+        "uid": "google_analytics",
+        "name": "Google Analytics",
+        "category": "Analytics and Tracking"
+      },
+      {
+        "uid": "google_cloud",
+        "name": "Google Cloud",
+        "category": "Cloud Services"
+      },
+      {
+        "uid": "google_cloud_cdn",
+        "name": "Google Cloud CDN",
+        "category": "Content Delivery Networks"
+      },
+      {
+        "uid": "google_cloud_dns",
+        "name": "Google Cloud DNS",
+        "category": "Domain Name Services"
+      },
+      {
+        "uid": "google_cloud_hosting",
+        "name": "Google Cloud Hosting",
+        "category": "Cloud Services"
+      },
+      {
+        "uid": "google_cloud_load_balancing",
+        "name": "Google Cloud Load Balancing",
+        "category": "Load Balancers"
+      },
+      {
+        "uid": "google_cloud_looker",
+        "name": "Google Cloud Looker",
+        "category": "Business Intelligence"
+      },
+      {
+        "uid": "google_drive",
+        "name": "Google Drive",
+        "category": "Communication and Collaboration"
+      },
+      {
+        "uid": "google_kubernetes_engine_gke",
+        "name": "Google Kubernetes Engine",
+        "category": "Virtualization and Containers"
+      },
+      {
+        "uid": "google_meet",
+        "name": "Google Meet",
+        "category": "Communication and Collaboration"
+      },
+      {
+        "uid": "google_search_console",
+        "name": "Google Search Console",
+        "category": "Search Marketing"
+      },
+      {
+        "uid": "google_sheets",
+        "name": "Google Sheets",
+        "category": "Communication and Collaboration"
+      },
+      {
+        "uid": "google_tag_manager",
+        "name": "Google Tag Manager",
+        "category": "Tag Management"
+      },
+      {
+        "uid": "google workspace",
+        "name": "Google Workspace",
+        "category": "Communication and Collaboration"
+      },
+      {
+        "uid": "grafana",
+        "name": "Grafana",
+        "category": "Web Performance Monitoring"
+      },
+      {
+        "uid": "graphql",
+        "name": "GraphQL",
+        "category": "Frameworks and Programming Languages"
+      },
+      {
+        "uid": "greenhouse",
+        "name": "Greenhouse",
+        "category": "Recruitment"
+      },
+      {
+        "uid": "href_lang",
+        "name": "HREF Lang",
+        "category": "Search Marketing"
+      },
+      {
+        "uid": "hsts",
+        "name": "HSTS",
+        "category": "Security"
+      },
+      {
+        "uid": "html",
+        "name": "HTML",
+        "category": "Frameworks and Programming Languages"
+      },
+      {
+        "uid": "hex",
+        "name": "Hex",
+        "category": "Business Intelligence"
+      },
+      {
+        "uid": "hubspot_marketing_hub",
+        "name": "HubSpot Marketing Hub",
+        "category": "Marketing Automation"
+      },
+      {
+        "uid": "hubspot",
+        "name": "Hubspot",
+        "category": "Marketing Automation"
+      },
+      {
+        "uid": "intercom",
+        "name": "Intercom",
+        "category": "Support and Feedback"
+      },
+      {
+        "uid": "ironclad",
+        "name": "Ironclad",
+        "category": "Content Management Platform"
+      },
+      {
+        "uid": "jfrog",
+        "name": "JFrog",
+        "category": "Developer Tools"
+      },
+      {
+        "uid": "jfrog_pipelines",
+        "name": "JFrog Pipelines",
+        "category": "Deployment Tools"
+      },
+      {
+        "uid": "java",
+        "name": "Java",
+        "category": "Frameworks and Programming Languages"
+      },
+      {
+        "uid": "javascript",
+        "name": "JavaScript",
+        "category": "Frameworks and Programming Languages"
+      },
+      {
+        "uid": "jira",
+        "name": "Jira",
+        "category": "Communication and Collaboration"
+      },
+      {
+        "uid": "jira_service_management",
+        "name": "Jira Service Management",
+        "category": "Support and Feedback"
+      },
+      {
+        "uid": "kandji",
+        "name": "Kandji",
+        "category": "Enterprise Mobility Management"
+      },
+      {
+        "uid": "kibana",
+        "name": "Kibana",
+        "category": "Business Intelligence"
+      },
+      {
+        "uid": "kubernetes",
+        "name": "Kubernetes",
+        "category": "Virtualization and Containers"
+      },
+      {
+        "uid": "linkedin_ads",
+        "name": "LinkedIn Ads",
+        "category": "Advertising Networks"
+      },
+      {
+        "uid": "linkedin_recruiter",
+        "name": "LinkedIn Recruiter",
+        "category": "Recruitment"
+      },
+      {
+        "uid": "lovable",
+        "name": "Lovable",
+        "category": "No-Code App Builders"
+      },
+      {
+        "uid": "mui",
+        "name": "MUI",
+        "category": "CSS and JavaScript Libraries"
+      },
+      {
+        "uid": "macaron",
+        "name": "Macaron",
+        "category": "Frameworks and Programming Languages"
+      },
+      {
+        "uid": "mailchimp",
+        "name": "MailChimp",
+        "category": "Email Marketing"
+      },
+      {
+        "uid": "mailchimp_mandrill",
+        "name": "Mailchimp Mandrill",
+        "category": "Email Delivery"
+      },
+      {
+        "uid": "mailgun",
+        "name": "Mailgun",
+        "category": "Email Delivery"
+      },
+      {
+        "uid": "microsoft_365",
+        "name": "Microsoft 365",
+        "category": "Communication and Collaboration"
+      },
+      {
+        "uid": "microsoft_excel",
+        "name": "Microsoft Excel",
+        "category": "Business Intelligence"
+      },
+      {
+        "uid": "mixpanel",
+        "name": "Mixpanel",
+        "category": "Analytics and Tracking"
+      },
+      {
+        "uid": "mobile_friendly",
+        "name": "Mobile Friendly",
+        "category": "Other"
+      },
+      {
+        "uid": "mongodb",
+        "name": "MongoDB",
+        "category": "Database"
+      },
+      {
+        "uid": "multilingual",
+        "name": "Multilingual",
+        "category": "Localization and Translation"
+      },
+      {
+        "uid": "mysql",
+        "name": "MySQL",
+        "category": "Database"
+      },
+      {
+        "uid": "ns1",
+        "name": "NS1",
+        "category": "Domain Name Services"
+      },
+      {
+        "uid": "navan_formerly_tripactions",
+        "name": "Navan",
+        "category": "Financial Software"
+      },
+      {
+        "uid": "netsuite",
+        "name": "NetSuite",
+        "category": "ERP"
+      },
+      {
+        "uid": "netlify",
+        "name": "Netlify",
+        "category": "Hosting"
+      },
+      {
+        "uid": "nextjs",
+        "name": "Next.js",
+        "category": "Frameworks and Programming Languages"
+      },
+      {
+        "uid": "node.js",
+        "name": "Node.js",
+        "category": "Frameworks and Programming Languages"
+      },
+      {
+        "uid": "notion",
+        "name": "Notion",
+        "category": "Communication and Collaboration"
+      },
+      {
+        "uid": "numpy",
+        "name": "NumPy",
+        "category": "Frameworks and Programming Languages"
+      },
+      {
+        "uid": "oauth2",
+        "name": "OAuth 2.0",
+        "category": "Network Protocols and Standards"
+      },
+      {
+        "uid": "okta",
+        "name": "Okta",
+        "category": "Security"
+      },
+      {
+        "uid": "open_graph",
+        "name": "Open Graph",
+        "category": "Social Sharing"
+      },
+      {
+        "uid": "openai",
+        "name": "OpenAI",
+        "category": "AI and Machine Learning Platforms"
+      },
+      {
+        "uid": "codex",
+        "name": "OpenAI Codex",
+        "category": "Developer Tools"
+      },
+      {
+        "uid": "outreach.io",
+        "name": "Outreach.io",
+        "category": "Marketing Automation"
+      },
+      {
+        "uid": "php",
+        "name": "PHP",
+        "category": "Frameworks and Programming Languages"
+      },
+      {
+        "uid": "panther",
+        "name": "Panther",
+        "category": "Content Delivery Networks"
+      },
+      {
+        "uid": "partnerstack",
+        "name": "PartnerStack",
+        "category": "Affiliate Advertising Network"
+      },
+      {
+        "uid": "pipedrive",
+        "name": "Pipedrive",
+        "category": "Customer Relationship Management"
+      },
+      {
+        "uid": "playwright",
+        "name": "Playwright",
+        "category": "Developer Tools"
+      },
+      {
+        "uid": "postman",
+        "name": "Postman",
+        "category": "Developer Tools"
+      },
+      {
+        "uid": "priority_hints",
+        "name": "Priority Hints",
+        "category": "Web Accelerators"
+      },
+      {
+        "uid": "python",
+        "name": "Python",
+        "category": "Frameworks and Programming Languages"
+      },
+      {
+        "uid": "rest",
+        "name": "REST",
+        "category": "Network Protocols and Standards"
+      },
+      {
+        "uid": "radix_ui",
+        "name": "Radix UI",
+        "category": "CSS and JavaScript Libraries"
+      },
+      {
+        "uid": "ramp",
+        "name": "Ramp",
+        "category": "Financial Software"
+      },
+      {
+        "uid": "react",
+        "name": "React",
+        "category": "CSS and JavaScript Libraries"
+      },
+      {
+        "uid": "reddit",
+        "name": "Reddit",
+        "category": "Online Communities and Forums"
+      },
+      {
+        "uid": "redis",
+        "name": "Redis",
+        "category": "Database"
+      },
+      {
+        "uid": "redux",
+        "name": "Redux",
+        "category": "CSS and JavaScript Libraries"
+      },
+      {
+        "uid": "ruby",
+        "name": "Ruby",
+        "category": "Frameworks and Programming Languages"
+      },
+      {
+        "uid": "ruby_on_rails",
+        "name": "Ruby On Rails",
+        "category": "Frameworks and Programming Languages"
+      },
+      {
+        "uid": "sql",
+        "name": "SQL",
+        "category": "Frameworks and Programming Languages"
+      },
+      {
+        "uid": "salesloft",
+        "name": "SalesLoft",
+        "category": "Marketing Automation"
+      },
+      {
+        "uid": "salesforce",
+        "name": "Salesforce",
+        "category": "Customer Relationship Management"
+      },
+      {
+        "uid": "salesforce_lightning_web_components",
+        "name": "Salesforce Lightning Web Components",
+        "category": "CSS and JavaScript Libraries"
+      },
+      {
+        "uid": "salesforce_platform",
+        "name": "Salesforce Platform",
+        "category": "Cloud Services"
+      },
+      {
+        "uid": "scala",
+        "name": "Scala",
+        "category": "Frameworks and Programming Languages"
+      },
+      {
+        "uid": "sendgrid",
+        "name": "Sendgrid",
+        "category": "Email Delivery"
+      },
+      {
+        "uid": "slack",
+        "name": "Slack",
+        "category": "Communication and Collaboration"
+      },
+      {
+        "uid": "snowflake",
+        "name": "Snowflake",
+        "category": "Database"
+      },
+      {
+        "uid": "sonar",
+        "name": "Sonar",
+        "category": "Customer Relationship Management"
+      },
+      {
+        "uid": "sqlalchemy",
+        "name": "Sqlalchemy",
+        "category": "Frameworks and Programming Languages"
+      },
+      {
+        "uid": "squarespace",
+        "name": "Squarespace",
+        "category": "CMS"
+      },
+      {
+        "uid": "statsig",
+        "name": "Statsig",
+        "category": "Analytics and Tracking"
+      },
+      {
+        "uid": "stripe",
+        "name": "Stripe",
+        "category": "Payments"
+      },
+      {
+        "uid": "tailwind",
+        "name": "Tailwind",
+        "category": "CSS and JavaScript Libraries"
+      },
+      {
+        "uid": "tailwind_css",
+        "name": "Tailwind CSS",
+        "category": "CSS and JavaScript Libraries"
+      },
+      {
+        "uid": "terraform",
+        "name": "Terraform",
+        "category": "Deployment Tools"
+      },
+      {
+        "uid": "tiktok",
+        "name": "TikTok",
+        "category": "Online Video Platforms"
+      },
+      {
+        "uid": "trayai",
+        "name": "Tray.ai",
+        "category": "Application Integration and Middleware"
+      },
+      {
+        "uid": "trayio",
+        "name": "Tray.io",
+        "category": "Application Integration and Middleware"
+      },
+      {
+        "uid": "typescript",
+        "name": "TypeScript",
+        "category": "Frameworks and Programming Languages"
+      },
+      {
+        "uid": "varicent",
+        "name": "Varicent",
+        "category": "Human Capital Management"
+      },
+      {
+        "uid": "viewport_meta",
+        "name": "Viewport Meta",
+        "category": "Frameworks and Programming Languages"
+      },
+      {
+        "uid": "vitally",
+        "name": "Vitally",
+        "category": "Customer Relationship Management"
+      },
+      {
+        "uid": "vue_js_library",
+        "name": "VueJS",
+        "category": "CSS and JavaScript Libraries"
+      },
+      {
+        "uid": "wistia",
+        "name": "Wistia",
+        "category": "Online Video Platforms"
+      },
+      {
+        "uid": "wordpress_org",
+        "name": "WordPress.org",
+        "category": "CMS"
+      },
+      {
+        "uid": "wordpress",
+        "name": "Wordpress",
+        "category": "CMS"
+      },
+      {
+        "uid": "workato",
+        "name": "Workato",
+        "category": "Application Integration and Middleware"
+      },
+      {
+        "uid": "x_twitter",
+        "name": "X (Twitter)",
+        "category": "Social Media Marketing"
+      },
+      {
+        "uid": "xactly",
+        "name": "Xactly",
+        "category": "Human Capital Management"
+      },
+      {
+        "uid": "youtube",
+        "name": "YouTube",
+        "category": "Online Video Platforms"
+      },
+      {
+        "uid": "zapier",
+        "name": "Zapier",
+        "category": "Application Integration and Middleware"
+      },
+      {
+        "uid": "zendesk",
+        "name": "Zendesk",
+        "category": "Support and Feedback"
+      },
+      {
+        "uid": "zendesk_support_suite",
+        "name": "Zendesk Support Suite",
+        "category": "Support and Feedback"
+      },
+      {
+        "uid": "zendesk_for_service",
+        "name": "Zendesk for Service",
+        "category": "Support and Feedback"
+      },
+      {
+        "uid": "zip",
+        "name": "Zip",
+        "category": "Payments"
+      },
+      {
+        "uid": "zoho",
+        "name": "Zoho",
+        "category": "Communication and Collaboration"
+      },
+      {
+        "uid": "zoom_meetings",
+        "name": "Zoom Meetings",
+        "category": "Communication and Collaboration"
+      },
+      {
+        "uid": "dbt",
+        "name": "dbt",
+        "category": "Data Engineering and Streaming"
+      },
+      {
+        "uid": "dbt_cloud",
+        "name": "dbt Cloud",
+        "category": "Data Engineering and Streaming"
+      },
+      {
+        "uid": "pandas",
+        "name": "pandas",
+        "category": "Frameworks and Programming Languages"
+      },
+      {
+        "uid": "scikitlearn",
+        "name": "scikit-learn",
+        "category": "Frameworks and Programming Languages"
+      },
+      {
+        "uid": "shadcn/ui",
+        "name": "shadcn/ui",
+        "category": "CSS and JavaScript Libraries"
+      },
+      {
+        "uid": "webpack",
+        "name": "webpack",
+        "category": "Developer Tools"
+      }
+    ],
+    "org_chart_sector": "OrgChart::SectorHierarchy::Rules::IT",
+    "org_chart_removed": false,
+    "org_chart_show_department_filter": true,
+    "is_placeholder_organization": null,
+    "departmental_head_count": {
+      "media_and_commmunication": 4,
+      "engineering": 236,
+      "arts_and_design": 26,
+      "human_resources": 40,
+      "data_science": 19,
+      "support": 45,
+      "sales": 172,
+      "operations": 54,
+      "finance": 12,
+      "business_development": 38,
+      "marketing": 39,
+      "information_technology": 17,
+      "legal": 6,
+      "accounting": 7,
+      "consulting": 10,
+      "product_management": 11,
+      "entrepreneurship": 6,
+      "education": 1,
+      "administrative": 1
+    },
+    "organization_headcount_six_month_growth": 0.02188940092165899,
+    "organization_headcount_twelve_month_growth": 0.07384987893462469,
+    "organization_headcount_twenty_four_month_growth": 0.2836468885672938
   }
 }

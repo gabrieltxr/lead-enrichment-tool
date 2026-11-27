@@ -21,10 +21,13 @@ Não grave aqui respostas com dados pessoais reais (nomes, e-mails, telefones).
   Serve para testar o mapeamento por caminho (`PROVEDOR_DOMINIO_MAPA_CAMPOS`).
   Quando o provedor for definido, grave aqui uma resposta real (sem dados
   pessoais) e ajuste o mapa nos testes.
-- `provedor_dominio/apollo_organizacao.json`: formato de
-  `GET https://api.apollo.io/api/v1/organizations/enrich?domain=...`
-  (docs.apollo.io/reference/organization-enrichment), com nomes de campo da
-  documentação e valores fictícios. Regravar com uma resposta real da conta:
+- `provedor_dominio/apollo_organizacao.json`: resposta **real** de
+  `GET https://api.apollo.io/api/v1/organizations/enrich?domain=apollo.io`,
+  gravada em 27/11/2026, com `account`, telefones e dados de pessoas removidos.
+- `provedor_dominio/apollo_nao_encontrado.json`: resposta real para um domínio
+  que não existe (HTTP 200, corpo `{}`).
+
+  Para regravar (gasta 1 crédito; remova `account` e telefones antes de salvar):
 
       curl -s -H "x-api-key: $PROVEDOR_DOMINIO_API_KEY" \
         "https://api.apollo.io/api/v1/organizations/enrich?domain=apollo.io" \

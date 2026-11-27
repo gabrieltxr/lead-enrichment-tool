@@ -29,7 +29,7 @@ def test_apollo_so_precisa_da_chave():
     )
     assert (s.provedor_dominio_header_auth, s.provedor_dominio_prefixo_auth) == ("x-api-key", "")
     assert s.provedor_dominio_mapa_campos["num_funcionarios"] == "organization.estimated_num_employees"
-    assert (s.provedor_dominio_limite_taxa, s.provedor_dominio_janela_taxa_segundos) == (600, 3600.0)
+    assert (s.provedor_dominio_limite_taxa, s.provedor_dominio_janela_taxa_segundos) == (200, 3600.0)
     assert s.mapa_propriedades["nome_empresa"] == "company"
 
 

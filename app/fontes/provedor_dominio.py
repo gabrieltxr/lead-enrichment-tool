@@ -27,16 +27,18 @@ _AUSENTE = object()
 PRESETS: dict[str, dict] = {
     # https://docs.apollo.io/reference/organization-enrichment
     # GET /api/v1/organizations/enrich?domain=..., header x-api-key, 1 crédito
-    # por empresa. Domínio não encontrado não tem status documentado: resposta
-    # sem `organization` vira "sem dados".
+    # por empresa. Testado com chave real em 2026-11-27: domínio desconhecido
+    # responde 200 com corpo `{}` (vira "sem dados") e também conta no uso.
     "apollo": {
         "nome": "apollo",
         "url": "https://api.apollo.io/api/v1/organizations/enrich?domain={dominio}",
         "header_auth": "x-api-key",
         "prefixo_auth": "",
-        # Exemplo de limite da documentação: 600 chamadas por hora neste endpoint
-        # (varia por plano).
-        "limite_taxa": 600,
+        # Limites vistos nos headers x-rate-limit-* da conta de teste: 50 por
+        # minuto, 200 por hora e 600 por dia (variam por plano). A janela de
+        # 1 hora é a que mais restringe com carga contínua; picos acima de 50 por
+        # minuto recebem 429 e são repetidos com backoff.
+        "limite_taxa": 200,
         "janela_taxa_segundos": 3600.0,
         "mapa_campos": {
             "nome_empresa": "organization.name",
@@ -86,6 +88,8 @@ def _texto(valor: object) -> str | None:
         return None
     if isinstance(valor, bool):
         return "true" if valor else "false"
+    if isinstance(valor, float) and valor.is_integer():
+        return str(int(valor))  # a Apollo devolve annual_revenue como 150000000.0
     texto = str(valor).strip()
     return texto or None
 

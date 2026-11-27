@@ -184,7 +184,7 @@ async def test_mesma_propriedade_por_fontes_diferentes_nao_vira_campo_manual(eng
 
     contato = hubspot.contatos["101"]
     assert contato["company"] == "OPEN KNOWLEDGE BRASIL"
-    assert contato["website"] == "http://www.exemplo-global.test"
+    assert contato["website"] == "http://www.apollo.io"
     assert contato["country"] == "United States"
     assert contato["origem_enriquecimento"] == "apollo,brasilapi"
     campos = _campos(sessao, evento_id)
@@ -204,4 +204,4 @@ def test_montar_fontes_respeita_a_flag():
     fontes = montar_fontes(http, ativa)
     assert [f.nome for f in fontes] == ["brasilapi", "apollo"]
     assert fontes[0].limite_mensal is None and fontes[1].limite_mensal == 42
-    assert fontes[1]._limitador.limite == 600 and fontes[1]._limitador.janela == 3600.0
+    assert fontes[1]._limitador.limite == 200 and fontes[1]._limitador.janela == 3600.0

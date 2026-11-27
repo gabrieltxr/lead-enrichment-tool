@@ -155,7 +155,8 @@ async def test_aplicavel_so_com_dominio():
     assert fonte.nome == "provedor_x" and fonte.limite_mensal == 10
 
 
-def test_preset_apollo_extrai_campos_da_resposta():
+def test_preset_apollo_extrai_campos_da_resposta_real():
+    """Resposta real de organizations/enrich?domain=apollo.io (2026-11-27)."""
     from app.fontes.provedor_dominio import PRESETS
 
     resposta = fixture_json("provedor_dominio/apollo_organizacao.json")
@@ -163,22 +164,27 @@ def test_preset_apollo_extrai_campos_da_resposta():
         c.campo: c.valor
         for c in extrair_campos(resposta, PRESETS["apollo"]["mapa_campos"], Decimal("0.85"))
     }
+    descricao = campos.pop("descricao")
+    assert descricao.startswith("Apollo.io is an AI-powered B2B sales intelligence")
     assert campos == {
-        "nome_empresa": "Exemplo Global",
-        "site": "http://www.exemplo-global.test",
-        "linkedin_empresa": "http://www.linkedin.com/company/exemplo-global",
+        "nome_empresa": "Apollo.io",
+        "site": "http://www.apollo.io",
+        "linkedin_empresa": "http://www.linkedin.com/company/apolloio",
         "setor": "information technology & services",
-        "num_funcionarios": "1600",
-        "receita_anual": "100000000",
+        "num_funcionarios": "800",
+        "receita_anual": "150000000",  # vem como float 150000000.0
         "ano_fundacao": "2015",
-        "descricao": "Empresa fictícia usada nos testes.",
-        "endereco": "440 N Barranca Ave",
-        "municipio": "Covina",
+        "endereco": "415 Mission St",
+        "municipio": "San Francisco",
         "uf": "California",
-        "cep": "91723",
+        "cep": "94105-2301",
         "pais": "United States",
     }
-    assert "555" not in " ".join(campos.values())  # telefones não são extraídos
+
+
+def test_float_nao_inteiro_mantem_casas():
+    campos = extrair_campos({"x": 0.5, "y": 3.0}, {"a": "x", "b": "y"}, Decimal("1"))
+    assert [c.valor for c in campos] == ["0.5", "3"]
 
 
 async def test_apollo_dominio_nao_encontrado_vira_sem_dados():
@@ -189,7 +195,7 @@ async def test_apollo_dominio_nao_encontrado_vira_sem_dados():
 
     def handler(request):
         vistos.append(request)
-        return httpx.Response(200, json={})
+        return httpx.Response(200, json=fixture_json("provedor_dominio/apollo_nao_encontrado.json"))
 
     fonte, http = _fonte(
         handler, nome="apollo", url=preset["url"], mapa_campos=preset["mapa_campos"],

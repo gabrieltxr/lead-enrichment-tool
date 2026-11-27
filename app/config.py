@@ -2,9 +2,12 @@
 
 from decimal import Decimal
 from functools import lru_cache
+from typing import Literal
 
 from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+from app.fontes.provedor_dominio import PRESETS
 
 
 class Settings(BaseSettings):
@@ -35,27 +38,35 @@ class Settings(BaseSettings):
         "cep": "zip",
         "endereco": "address",
         "cnae_principal": "industry",
+        # Campos do preset apollo (empresas de qualquer país)
+        "nome_empresa": "company",
+        "site": "website",
+        "setor": "industry",
+        "pais": "country",
     }
     confianca_minima: Decimal = Field(default=Decimal("0.70"), ge=0, le=1)
 
-    # Fonte paga por domínio (Fase 3). Agnóstica de provedor: URL, autenticação
-    # e mapeamento de campos vêm da configuração.
+    # Fonte paga por domínio (Fase 3). Parte de um preset (apollo ou
+    # personalizado); qualquer PROVEDOR_DOMINIO_* definido sobrescreve o preset.
     fonte_dominio_ativa: bool = False
+    provedor_dominio_preset: Literal["apollo", "personalizado"] = "apollo"
     provedor_dominio_api_key: SecretStr | None = None
     limite_consumo_mensal_provedor: int = Field(default=1000, ge=0)
-    provedor_dominio_nome: str = Field(default="provedor_dominio", min_length=1, max_length=50)
+    provedor_dominio_nome: str | None = Field(default=None, min_length=1, max_length=50)
     # URL com o marcador {dominio}. Ex.: https://api.exemplo.com/v1/empresas?dominio={dominio}
     provedor_dominio_url: str | None = None
-    provedor_dominio_header_auth: str = "Authorization"
-    provedor_dominio_prefixo_auth: str = "Bearer "
+    provedor_dominio_header_auth: str | None = None
+    provedor_dominio_prefixo_auth: str | None = None
     # Campo interno -> caminho na resposta JSON (com pontos). Ex.: {"setor": "empresa.setor"}
-    provedor_dominio_mapa_campos: dict[str, str] = {}
+    provedor_dominio_mapa_campos: dict[str, str] | None = None
     # Confiança fixa dos campos do provedor (domínio exato, abaixo do CNPJ exato).
     provedor_dominio_confianca: Decimal = Field(default=Decimal("0.85"), ge=0, le=1)
     # Opcional: caminho na resposta com a confiança do próprio provedor (0 a 1).
     # Quando presente, vale o menor valor entre ela e PROVEDOR_DOMINIO_CONFIANCA.
     provedor_dominio_caminho_confianca: str | None = None
-    provedor_dominio_requisicoes_por_segundo: int = Field(default=2, ge=1)
+    # Limite de taxa: no máximo LIMITE_TAXA chamadas a cada JANELA_TAXA_SEGUNDOS.
+    provedor_dominio_limite_taxa: int | None = Field(default=None, ge=1)
+    provedor_dominio_janela_taxa_segundos: float | None = Field(default=None, gt=0)
 
     # Token exigido em GET /metricas (Authorization: Bearer ...). Vazio = aberto.
     metricas_token: SecretStr | None = None
@@ -76,7 +87,10 @@ class Settings(BaseSettings):
         return ",".join(sorted(versoes))
 
     @model_validator(mode="after")
-    def _validar_fonte_dominio(self) -> "Settings":
+    def _aplicar_preset_e_validar_fonte_dominio(self) -> "Settings":
+        for chave, valor in PRESETS[self.provedor_dominio_preset].items():
+            if getattr(self, f"provedor_dominio_{chave}") is None:
+                setattr(self, f"provedor_dominio_{chave}", valor)
         if not self.fonte_dominio_ativa:
             return self
         faltando = [

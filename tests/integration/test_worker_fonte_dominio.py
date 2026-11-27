@@ -154,15 +154,54 @@ async def test_falha_do_provedor_registra_erro_e_reprocessa_sem_duplicar(montar,
     assert consumo_do_mes(sessao) == {"provedor_x": 2}  # cada tentativa conta
 
 
+async def test_mesma_propriedade_por_fontes_diferentes_nao_vira_campo_manual(engine, sessao):
+    """BrasilAPI grava company (razao_social); na reexecução, nome_empresa da
+    Apollo vê o valor do próprio serviço, não um valor manual."""
+    from app.fontes.provedor_dominio import PRESETS
+
+    apollo = fixture_json("provedor_dominio/apollo_organizacao.json")
+    brasilapi = BrasilAPIFalsa()
+
+    def roteador(request):
+        return brasilapi(request) if request.url.host == "brasilapi.com.br" else httpx.Response(200, json=apollo)
+
+    settings = Settings(hubspot_token="t", hubspot_webhook_secret="s", database_url="x")
+    hubspot = HubSpotFalso({"101": _contato()}, propriedades=["website", "country"])
+    evento_id = _novo_evento(sessao)
+    async with httpx.AsyncClient(transport=httpx.MockTransport(roteador)) as http:
+        fontes = [
+            FonteBrasilAPI(http, limitador=LimitadorTaxa(1000, 1.0)),
+            FonteProvedorDominio(
+                http, nome="apollo", url=PRESETS["apollo"]["url"], api_key="k",
+                mapa_campos=PRESETS["apollo"]["mapa_campos"], limite_mensal=10,
+                limitador=LimitadorTaxa(1000, 1.0),
+            ),
+        ]
+        worker = Worker(sessionmaker(bind=engine), hubspot, fontes, settings)
+        await worker.executar_ciclo()
+        _liberar(sessao, evento_id, status="pendente")
+        await worker.executar_ciclo()
+
+    contato = hubspot.contatos["101"]
+    assert contato["company"] == "OPEN KNOWLEDGE BRASIL"
+    assert contato["website"] == "http://www.exemplo-global.test"
+    assert contato["country"] == "United States"
+    assert contato["origem_enriquecimento"] == "apollo,brasilapi"
+    campos = _campos(sessao, evento_id)
+    assert campos["nome_empresa"].motivo == "confianca_nao_maior"
+    assert not any(c.motivo == "campo_manual" for c in campos.values())
+    assert "preservados" not in hubspot.notas[0][1]
+
+
 def test_montar_fontes_respeita_a_flag():
     base = dict(hubspot_token="t", hubspot_webhook_secret="s", database_url="x")
     http = httpx.AsyncClient()
     assert [f.nome for f in montar_fontes(http, Settings(**base))] == ["brasilapi"]
     ativa = Settings(
-        **base, fonte_dominio_ativa=True, provedor_dominio_nome="prov",
-        provedor_dominio_url="https://p.test/{dominio}", provedor_dominio_api_key="k",
-        provedor_dominio_mapa_campos={"setor": "s"}, limite_consumo_mensal_provedor=42,
+        **base, fonte_dominio_ativa=True, provedor_dominio_api_key="k",
+        limite_consumo_mensal_provedor=42,
     )
     fontes = montar_fontes(http, ativa)
-    assert [f.nome for f in fontes] == ["brasilapi", "prov"]
+    assert [f.nome for f in fontes] == ["brasilapi", "apollo"]
     assert fontes[0].limite_mensal is None and fontes[1].limite_mensal == 42
+    assert fontes[1]._limitador.limite == 600 and fontes[1]._limitador.janela == 3600.0

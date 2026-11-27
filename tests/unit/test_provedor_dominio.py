@@ -153,3 +153,52 @@ async def test_aplicavel_so_com_dominio():
         assert not fonte.aplicavel(DadosLead("1", cnpj="19131243000197"))
         assert await fonte.consultar(DadosLead("1")) == []
     assert fonte.nome == "provedor_x" and fonte.limite_mensal == 10
+
+
+def test_preset_apollo_extrai_campos_da_resposta():
+    from app.fontes.provedor_dominio import PRESETS
+
+    resposta = fixture_json("provedor_dominio/apollo_organizacao.json")
+    campos = {
+        c.campo: c.valor
+        for c in extrair_campos(resposta, PRESETS["apollo"]["mapa_campos"], Decimal("0.85"))
+    }
+    assert campos == {
+        "nome_empresa": "Exemplo Global",
+        "site": "http://www.exemplo-global.test",
+        "linkedin_empresa": "http://www.linkedin.com/company/exemplo-global",
+        "setor": "information technology & services",
+        "num_funcionarios": "1600",
+        "receita_anual": "100000000",
+        "ano_fundacao": "2015",
+        "descricao": "Empresa fictícia usada nos testes.",
+        "endereco": "440 N Barranca Ave",
+        "municipio": "Covina",
+        "uf": "California",
+        "cep": "91723",
+        "pais": "United States",
+    }
+    assert "555" not in " ".join(campos.values())  # telefones não são extraídos
+
+
+async def test_apollo_dominio_nao_encontrado_vira_sem_dados():
+    from app.fontes.provedor_dominio import PRESETS
+
+    preset = PRESETS["apollo"]
+    vistos = []
+
+    def handler(request):
+        vistos.append(request)
+        return httpx.Response(200, json={})
+
+    fonte, http = _fonte(
+        handler, nome="apollo", url=preset["url"], mapa_campos=preset["mapa_campos"],
+        header_auth=preset["header_auth"], prefixo_auth=preset["prefixo_auth"],
+    )
+    async with http:
+        assert await fonte.consultar(DADOS) == []
+    assert vistos[0].headers["x-api-key"] == "chave-de-teste"
+    assert "authorization" not in vistos[0].headers
+    assert str(vistos[0].url) == (
+        "https://api.apollo.io/api/v1/organizations/enrich?domain=exemplo-empresa.com.br"
+    )

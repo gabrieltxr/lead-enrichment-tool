@@ -2,7 +2,8 @@
 
 Só é usada com FONTE_DOMINIO_ATIVA=true. Nada aqui depende de um provedor
 específico: a URL (com o marcador {dominio}), o header de autenticação e o
-mapeamento entre a resposta JSON e os campos internos vêm da configuração.
+mapeamento entre a resposta JSON e os campos internos vêm da configuração,
+partindo de um preset (`apollo` por padrão, ou `personalizado`).
 
 Correspondência por domínio é exata, mas menos certa que o CNPJ: a confiança
 padrão é 0.85. Se o provedor devolver a própria confiança, vale a menor das duas.
@@ -19,6 +20,50 @@ from app.fontes.base import CampoEncontrado, DadosLead, Fonte
 from app.utils.retry import TIMEOUT_PADRAO, LimitadorTaxa, politica_http, verificar_resposta
 
 _AUSENTE = object()
+
+# Presets de provedores conhecidos. Cada valor pode ser sobrescrito pela
+# variável PROVEDOR_DOMINIO_* correspondente; com o preset "personalizado"
+# a URL e o mapa de campos são obrigatórios.
+PRESETS: dict[str, dict] = {
+    # https://docs.apollo.io/reference/organization-enrichment
+    # GET /api/v1/organizations/enrich?domain=..., header x-api-key, 1 crédito
+    # por empresa. Domínio não encontrado não tem status documentado: resposta
+    # sem `organization` vira "sem dados".
+    "apollo": {
+        "nome": "apollo",
+        "url": "https://api.apollo.io/api/v1/organizations/enrich?domain={dominio}",
+        "header_auth": "x-api-key",
+        "prefixo_auth": "",
+        # Exemplo de limite da documentação: 600 chamadas por hora neste endpoint
+        # (varia por plano).
+        "limite_taxa": 600,
+        "janela_taxa_segundos": 3600.0,
+        "mapa_campos": {
+            "nome_empresa": "organization.name",
+            "site": "organization.website_url",
+            "linkedin_empresa": "organization.linkedin_url",
+            "setor": "organization.industry",
+            "num_funcionarios": "organization.estimated_num_employees",
+            "receita_anual": "organization.annual_revenue",
+            "ano_fundacao": "organization.founded_year",
+            "descricao": "organization.short_description",
+            "endereco": "organization.street_address",
+            "municipio": "organization.city",
+            "uf": "organization.state",
+            "cep": "organization.postal_code",
+            "pais": "organization.country",
+        },
+    },
+    "personalizado": {
+        "nome": "provedor_dominio",
+        "url": None,
+        "header_auth": "Authorization",
+        "prefixo_auth": "Bearer ",
+        "limite_taxa": 2,
+        "janela_taxa_segundos": 1.0,
+        "mapa_campos": None,
+    },
+}
 
 
 def valor_no_caminho(dados: object, caminho: str) -> object:

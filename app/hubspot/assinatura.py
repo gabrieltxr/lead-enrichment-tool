@@ -32,6 +32,15 @@ def _normalizar_uri(uri: str) -> str:
     return uri
 
 
+def _iguais(esperada: str, recebida: str) -> bool:
+    """Comparação em tempo constante que não quebra com header fora de ASCII.
+
+    `hmac.compare_digest` com `str` lança TypeError se houver caractere não
+    ASCII, o que viraria erro 500 em vez de 401.
+    """
+    return hmac.compare_digest(esperada.encode(), recebida.encode("utf-8", "replace"))
+
+
 def calcular_assinatura(segredo: str, metodo: str, uri: str, corpo: bytes, timestamp: str) -> str:
     mensagem = metodo.upper().encode() + _normalizar_uri(uri).encode() + corpo + timestamp.encode()
     digest = hmac.new(segredo.encode(), mensagem, hashlib.sha256).digest()
@@ -60,7 +69,7 @@ def assinatura_valida(
     if abs(agora_ms - ts_ms) > janela_segundos * 1000:
         return False
     esperada = calcular_assinatura(segredo, metodo, uri, corpo, timestamp)
-    return hmac.compare_digest(esperada, assinatura)
+    return _iguais(esperada, assinatura)
 
 
 def calcular_assinatura_legada(
@@ -101,4 +110,4 @@ def requisicao_autentica(
     if not assinatura or versao not in {"v1", "v2"} or versao not in versoes_aceitas:
         return False
     esperada = calcular_assinatura_legada(segredo, versao, metodo, uri, corpo)
-    return hmac.compare_digest(esperada, assinatura.lower())
+    return _iguais(esperada, assinatura.lower())

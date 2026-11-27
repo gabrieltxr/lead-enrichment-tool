@@ -134,3 +134,17 @@ def test_assinatura_v1_desligada_retorna_401(client, sessao, monkeypatch):
     headers = {"X-HubSpot-Signature": hashlib.sha256(b"segredo-de-teste" + corpo).hexdigest()}
     assert _postar(client, corpo, headers).status_code == 401
     assert _eventos(sessao) == []
+
+
+def test_corpo_grande_demais_retorna_413_sem_gravar(client, sessao):
+    from app.main import TAMANHO_MAXIMO_CORPO
+
+    corpo = b"[" + b" " * TAMANHO_MAXIMO_CORPO + b"]"
+    resp = _postar(client, corpo)
+    assert resp.status_code == 413
+    assert _eventos(sessao) == []
+
+
+def test_documentacao_automatica_desligada(client):
+    for caminho in ("/docs", "/redoc", "/openapi.json"):
+        assert client.get(caminho).status_code == 404

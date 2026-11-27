@@ -319,10 +319,32 @@ Ver `.env.example`. Obrigatórias: `HUBSPOT_TOKEN`, `HUBSPOT_WEBHOOK_SECRET`,
   executivos): só dados da empresa.
 - Atenção: a razão social de MEI costuma conter o nome (e às vezes o CPF) do
   titular, ou seja, é dado pessoal.
+- Retenção: `python -m scripts.expurgar --dias N` apaga eventos finalizados há
+  mais de N dias (com seus campos e consultas, em cascata) e
+  `python -m scripts.expurgar --contatos ID...` atende um pedido de eliminação do
+  titular. Ambos aceitam `--dry-run`. O prazo é decisão do controlador: o script
+  não tem padrão e precisa ser agendado para valer. Os dados já gravados no
+  HubSpot não são afetados.
 - **Pendente:** definir o responsável e a base legal do tratamento antes de
   rodar em produção, e o contrato (operador de dados) com a Apollo antes de
   ligar `FONTE_DOMINIO_ATIVA`. Só a organização é consultada; o serviço não usa
   os endpoints de pessoas da Apollo.
+
+## Segurança
+
+- O webhook só aceita requisições assinadas pelo HubSpot (versões em
+  `ASSINATURAS_ACEITAS`), com corpo de até 1 MiB (acima disso, 413).
+  `HUBSPOT_WEBHOOK_SECRET` e `HUBSPOT_TOKEN` vazios impedem a inicialização.
+- A v1 não tem timestamp e não protege contra replay; a idempotência por
+  contato limita o efeito. Se o seu app envia `X-HubSpot-Signature-v3`, use
+  `ASSINATURAS_ACEITAS=v3`.
+- `PROVEDOR_DOMINIO_URL` precisa ser `https://` e não pode ter `{dominio}` no
+  host: o domínio vem do e-mail do lead, e a chave da API vai em cada chamada.
+- `/docs`, `/redoc` e `/openapi.json` estão desligados. Defina `METRICAS_TOKEN`
+  em produção; sem ele, `GET /metricas` (só contagens) fica aberto.
+- No docker compose, o Postgres só escuta em `127.0.0.1` e a senha vem de
+  `POSTGRES_PASSWORD` (padrão `leads`, só para desenvolvimento). A API escuta
+  em HTTP na porta 8080: em produção, exponha só por um proxy com TLS.
 
 ## Decisões da Fase 1
 

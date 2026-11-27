@@ -135,10 +135,12 @@ LIMITE_CONSUMO_MENSAL_PROVEDOR=1000     # créditos por mês que você aceita ga
 ```
 
 O preset `apollo` chama `GET https://api.apollo.io/api/v1/organizations/enrich?domain={dominio}`
-com o header `x-api-key` (1 crédito por consulta), limita a 600 chamadas por
-hora (exemplo da documentação; ajuste ao seu plano com
-`PROVEDOR_DOMINIO_LIMITE_TAXA`/`PROVEDOR_DOMINIO_JANELA_TAXA_SEGUNDOS`) e
-extrai:
+com o header `x-api-key` (1 crédito por consulta), limita a 200 chamadas por
+hora e extrai os campos abaixo. A conta de teste mostrou, nos headers
+`x-rate-limit-*`, 50 por minuto, 200 por hora e 600 por dia; picos acima de 50
+por minuto recebem 429 e são repetidos com backoff. Ajuste ao seu plano com
+`PROVEDOR_DOMINIO_LIMITE_TAXA`/`PROVEDOR_DOMINIO_JANELA_TAXA_SEGUNDOS`, e
+mantenha `LIMITE_CONSUMO_MENSAL_PROVEDOR` dentro dos créditos do plano.
 
 | Campo interno | Caminho na resposta | Propriedade padrão no HubSpot |
 | --- | --- | --- |
@@ -149,9 +151,11 @@ extrai:
 | `municipio`, `uf`, `cep`, `endereco` | `organization.city`, `.state`, `.postal_code`, `.street_address` | `city`, `state`, `zip`, `address` |
 | `linkedin_empresa`, `num_funcionarios`, `receita_anual`, `ano_fundacao`, `descricao` | `organization.linkedin_url`, `.estimated_num_employees`, `.annual_revenue`, `.founded_year`, `.short_description` | só auditoria (mapeie em `MAPA_PROPRIEDADES` se quiser) |
 
-Telefones da resposta são ignorados. A Apollo não documenta o status de um
-domínio não encontrado; uma resposta sem `organization` é tratada como "sem
-dados". 401 (chave inválida) e 403 (chave sem acesso ao endpoint) viram erro
+Telefones da resposta são ignorados. Testado com chave real em 27/11/2026:
+um domínio que a Apollo não conhece responde **200 com corpo `{}`**, tratado
+como "sem dados", e também conta no uso (por isso o contador mensal conta toda
+consulta). `annual_revenue` vem como número decimal (`150000000.0`) e é gravado
+como inteiro. 401 (chave inválida) e 403 (chave sem acesso ao endpoint) viram erro
 permanente do evento, para o problema aparecer logo.
 
 **Outro provedor** (`PROVEDOR_DOMINIO_PRESET=personalizado`):
@@ -238,7 +242,7 @@ formatador, e os do httpx (que trazem URLs) só aparecem a partir de WARNING.
 O cliente do HubSpot limita a 90 requisições a cada 10 s (o Starter permite
 100 por app) e repete 429 com backoff. A BrasilAPI é limitada a 3 por segundo
 e o provedor por domínio a `PROVEDOR_DOMINIO_LIMITE_TAXA` chamadas por
-`PROVEDOR_DOMINIO_JANELA_TAXA_SEGUNDOS` (Apollo: 600 por hora).
+`PROVEDOR_DOMINIO_JANELA_TAXA_SEGUNDOS` (Apollo: 200 por hora).
 
 ## Execução local
 

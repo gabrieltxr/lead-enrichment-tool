@@ -4,11 +4,12 @@ Serviço que recebe eventos de criação de contato do HubSpot, enriquece o
 contato com fontes externas e grava o resultado de volta no CRM, com auditoria
 no PostgreSQL.
 
-**Estado atual: Fase 2 (worker e fonte CNPJ).** O webhook grava cada contato
-criado como `pendente`; o worker lê o contato no HubSpot, consulta a BrasilAPI
-pelo CNPJ, aplica as regras de confiança, grava as propriedades e uma nota e
-registra cada campo na auditoria. A fonte por domínio e as métricas chegam na
-Fase 3.
+**Estado atual: Fase 3 (segunda fonte e observabilidade).** O webhook grava
+cada contato criado como `pendente`; o worker lê o contato no HubSpot, consulta
+a BrasilAPI pelo CNPJ e, se ligada, uma fonte paga por domínio (com limite
+mensal), aplica as regras de confiança, grava as propriedades e uma nota e
+registra cada campo e cada consulta na auditoria. `GET /metricas` expõe os
+indicadores de operação.
 
 Este repositório é um **blueprint**: nada depende de uma conta específica. Os
 nomes das propriedades e o mapeamento de campos são configuráveis
@@ -116,10 +117,132 @@ python -m scripts.reprocessar --ids 12 15
 
 Volta os eventos para `pendente` com `tentativas` zerado.
 
+## Fonte por domínio (paga, opcional)
+
+Desligada por padrão (`FONTE_DOMINIO_ATIVA=false`). O provedor padrão é a
+**Apollo** ([Organization Enrichment](https://docs.apollo.io/reference/organization-enrichment)),
+que cobre empresas de qualquer país. O código não depende dela: a fonte parte
+de um preset (`PROVEDOR_DOMINIO_PRESET`) e cada `PROVEDOR_DOMINIO_*` definido
+sobrescreve o valor do preset. Trocar de provedor é trocar variáveis de
+ambiente.
+
+**Ligar com a Apollo:**
+
+```bash
+FONTE_DOMINIO_ATIVA=true
+PROVEDOR_DOMINIO_API_KEY=...            # chave com acesso a organizations/enrich
+LIMITE_CONSUMO_MENSAL_PROVEDOR=1000     # créditos por mês que você aceita gastar
+```
+
+O preset `apollo` chama `GET https://api.apollo.io/api/v1/organizations/enrich?domain={dominio}`
+com o header `x-api-key` (1 crédito por consulta), limita a 200 chamadas por
+hora e extrai os campos abaixo. A conta de teste mostrou, nos headers
+`x-rate-limit-*`, 50 por minuto, 200 por hora e 600 por dia; picos acima de 50
+por minuto recebem 429 e são repetidos com backoff. Ajuste ao seu plano com
+`PROVEDOR_DOMINIO_LIMITE_TAXA`/`PROVEDOR_DOMINIO_JANELA_TAXA_SEGUNDOS`, e
+mantenha `LIMITE_CONSUMO_MENSAL_PROVEDOR` dentro dos créditos do plano.
+
+| Campo interno | Caminho na resposta | Propriedade padrão no HubSpot |
+| --- | --- | --- |
+| `nome_empresa` | `organization.name` | `company` |
+| `site` | `organization.website_url` | `website` |
+| `setor` | `organization.industry` | `industry` |
+| `pais` | `organization.country` | `country` |
+| `municipio`, `uf`, `cep`, `endereco` | `organization.city`, `.state`, `.postal_code`, `.street_address` | `city`, `state`, `zip`, `address` |
+| `linkedin_empresa`, `num_funcionarios`, `receita_anual`, `ano_fundacao`, `descricao` | `organization.linkedin_url`, `.estimated_num_employees`, `.annual_revenue`, `.founded_year`, `.short_description` | só auditoria (mapeie em `MAPA_PROPRIEDADES` se quiser) |
+
+Telefones da resposta são ignorados. Testado com chave real em 27/11/2026:
+um domínio que a Apollo não conhece responde **200 com corpo `{}`**, tratado
+como "sem dados", e também conta no uso (por isso o contador mensal conta toda
+consulta). `annual_revenue` vem como número decimal (`150000000.0`) e é gravado
+como inteiro. 401 (chave inválida) e 403 (chave sem acesso ao endpoint) viram erro
+permanente do evento, para o problema aparecer logo.
+
+**Outro provedor** (`PROVEDOR_DOMINIO_PRESET=personalizado`):
+
+| Variável | Para quê |
+| --- | --- |
+| `PROVEDOR_DOMINIO_URL` | URL de consulta com o marcador `{dominio}` (obrigatória) |
+| `PROVEDOR_DOMINIO_API_KEY` | Chave do provedor (obrigatória) |
+| `PROVEDOR_DOMINIO_HEADER_AUTH` / `PROVEDOR_DOMINIO_PREFIXO_AUTH` | Header e prefixo da chave. Padrão `Authorization: Bearer <chave>` |
+| `PROVEDOR_DOMINIO_MAPA_CAMPOS` | JSON campo interno → caminho na resposta, ex. `{"setor": "empresa.setor", "cidade_sede": "enderecos.0.cidade"}` (obrigatório) |
+| `PROVEDOR_DOMINIO_NOME` | Nome da fonte na auditoria, em `origem_enriquecimento` e nas métricas |
+| `PROVEDOR_DOMINIO_LIMITE_TAXA` / `PROVEDOR_DOMINIO_JANELA_TAXA_SEGUNDOS` | Limite de taxa (padrão 2 por segundo) |
+
+Valem para os dois: `PROVEDOR_DOMINIO_CONFIANCA` (padrão 0.85: domínio exato,
+abaixo do CNPJ exato), `PROVEDOR_DOMINIO_CAMINHO_CONFIANCA` (opcional: caminho
+de um score 0 a 1 da resposta; vale o menor) e `LIMITE_CONSUMO_MENSAL_PROVEDOR`.
+
+Para adicionar um preset para outro provedor, inclua uma entrada em `PRESETS`
+(`app/fontes/provedor_dominio.py`) e no `Literal` de `provedor_dominio_preset`.
+
+Para um campo do provedor ir para o HubSpot, ele também precisa estar em
+`MAPA_PROPRIEDADES` (ex.: `"num_funcionarios": "numberofemployees"`). Sem isso
+ele só vai para a auditoria (`sem_mapeamento`). Quando a BrasilAPI e o provedor
+gravam a mesma propriedade (ex.: `razao_social` e `nome_empresa` em `company`),
+vence a maior confiança (CNPJ exato, 1.00). A proteção de campo manual compara
+por propriedade: um valor que o próprio serviço gravou, por qualquer fonte, não
+conta como manual.
+
+- Só é consultada quando o e-mail tem domínio corporativo (gmail.com e
+  similares são ignorados).
+- Timeout de 10 s, até 3 tentativas em timeout, falha de rede, 429 e 5xx. 404 ou
+  204 é "domínio desconhecido", não erro. 401/403 é erro permanente.
+- Roda depois da BrasilAPI: se a fonte gratuita falhar, o evento volta para a
+  fila sem gastar consulta paga.
+
+### Controle de consumo mensal
+
+A tabela `consumo_fonte` guarda um contador por fonte e mês (AAAA-MM, UTC). Antes
+de cada consulta o worker soma 1 com `INSERT ... ON CONFLICT DO UPDATE ... WHERE
+consultas < limite`, numa única instrução: vários workers em paralelo nunca
+passam do limite. Cada consulta feita conta uma unidade, com ou sem dados (é
+como os provedores costumam cobrar), inclusive novas tentativas de um evento
+que falhou. Ao atingir o limite, a fonte é pulada, o motivo vai para
+`enriquecimento_consulta` (`limite_atingido`) e para o log, e o evento segue
+com as outras fontes. O contador zera sozinho na virada do mês.
+
+## Métricas
+
+`GET /metricas` (com `METRICAS_TOKEN` definido, exige
+`Authorization: Bearer <token>`). Só contagens, nenhum dado de lead:
+
+```json
+{
+  "eventos_por_status": {"pendente": 1, "processando": 0, "concluido": 3, "erro": 1},
+  "fontes": {
+    "brasilapi": {"consultas": 4, "com_dados": 2, "sem_dados": 1, "erro": 1,
+                  "limite_atingido": 0, "taxa_sucesso": 0.5}
+  },
+  "leads_com_pelo_menos_3_campos": {"concluidos": 3, "com_3_campos_ou_mais": 1, "percentual": 33.33},
+  "consumo_mensal": {"mes": "2026-11", "fontes": {"apollo": {"consultas": 1, "limite": 1000, "restante": 999}}}
+}
+```
+
+- **Taxa de sucesso por fonte:** consultas que trouxeram pelo menos um campo,
+  dividido por consultas feitas (`com_dados + sem_dados + erro`). Pulos por
+  limite aparecem em `limite_atingido` e não entram na conta. Vale o último
+  resultado de cada fonte em cada evento (tabela `enriquecimento_consulta`).
+- **Leads com pelo menos três campos:** eventos `concluido` com três ou mais
+  campos distintos preenchidos pelo enriquecimento (`aplicado = true` na
+  auditoria), sobre o total de concluídos. `null` quando ainda não há base.
+
+## Logs
+
+JSON em uma linha por evento, com `evento_id`, `hubspot_contact_id`, `fonte`,
+resultado e contagens. Nunca nome, e-mail ou telefone. Como proteção extra, o
+formatador troca por `[removido]` campos com nomes de dados pessoais ou de
+segredos (`email`, `nome`, `telefone`, `token`, `api_key`...) e mascara, na
+mensagem, nos valores e no traceback, qualquer coisa com cara de e-mail,
+telefone, CPF/CNPJ ou token `Bearer`. Os logs do uvicorn passam pelo mesmo
+formatador, e os do httpx (que trazem URLs) só aparecem a partir de WARNING.
+
 ### Limites de API
 
 O cliente do HubSpot limita a 90 requisições a cada 10 s (o Starter permite
-100 por app) e repete 429 com backoff. A BrasilAPI é limitada a 3 por segundo.
+100 por app) e repete 429 com backoff. A BrasilAPI é limitada a 3 por segundo
+e o provedor por domínio a `PROVEDOR_DOMINIO_LIMITE_TAXA` chamadas por
+`PROVEDOR_DOMINIO_JANELA_TAXA_SEGUNDOS` (Apollo: 200 por hora).
 
 ## Execução local
 
@@ -180,14 +303,26 @@ Ver `.env.example`. Obrigatórias: `HUBSPOT_TOKEN`, `HUBSPOT_WEBHOOK_SECRET`,
 | `psycopg2-binary` | Mesmo driver `psycopg2`, distribuído com wheels; evita compilar libpq na imagem. Trocar por `psycopg2` se a política de deploy exigir build a partir do fonte. |
 | `pytest-cov` (dev) | Medir a cobertura mínima de 80% pedida na seção 9. |
 
+## Tabelas além das duas da especificação
+
+| Tabela | Motivo |
+| --- | --- |
+| `enriquecimento_consulta` | Resultado de cada fonte por evento (`com_dados`, `sem_dados`, `erro`, `limite_atingido` e o motivo). Necessária para a taxa de sucesso por fonte, porque `enriquecimento_campo` só tem os campos encontrados, não as consultas vazias ou com falha. |
+| `consumo_fonte` | Contador mensal atômico da fonte paga. Contar a partir de `enriquecimento_consulta` não serve: ela guarda só o último resultado por evento (subcontaria novas tentativas) e não permite reservar a consulta sem condição de corrida. |
+
 ## LGPD
 
 - Logs só têm IDs; a nota no HubSpot não contém valores.
 - Sócios (QSA) e telefones da resposta da BrasilAPI são descartados.
+- O provedor por domínio recebe só o domínio corporativo, nunca o e-mail. Não
+  mapeie em `PROVEDOR_DOMINIO_MAPA_CAMPOS` campos de pessoas (contatos,
+  executivos): só dados da empresa.
 - Atenção: a razão social de MEI costuma conter o nome (e às vezes o CPF) do
   titular, ou seja, é dado pessoal.
 - **Pendente:** definir o responsável e a base legal do tratamento antes de
-  rodar em produção.
+  rodar em produção, e o contrato (operador de dados) com a Apollo antes de
+  ligar `FONTE_DOMINIO_ATIVA`. Só a organização é consultada; o serviço não usa
+  os endpoints de pessoas da Apollo.
 
 ## Decisões da Fase 1
 

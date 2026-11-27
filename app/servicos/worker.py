@@ -19,15 +19,17 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session, sessionmaker
 
 from app.config import Settings, get_settings
-from app.db.models import EnriquecimentoCampo, EnriquecimentoEvento
+from app.db.models import EnriquecimentoCampo, EnriquecimentoConsulta, EnriquecimentoEvento
 from app.fontes.base import CampoEncontrado, DadosLead, Fonte
 from app.fontes.brasilapi import FonteBrasilAPI
+from app.fontes.provedor_dominio import FonteProvedorDominio
 from app.hubspot.client import ClienteHubSpot
 from app.hubspot.schemas import definicoes_propriedades_controle
+from app.servicos import consumo
 from app.servicos.normalizacao import dominio_do_email, normalizar_cnpj
 from app.servicos.regras import Decisao, GravacaoAnterior, decidir
 from app.utils.logging import configurar_logging
-from app.utils.retry import ErroPermanente, backoff_evento
+from app.utils.retry import ErroPermanente, LimitadorTaxa, backoff_evento
 
 logger = logging.getLogger(__name__)
 
@@ -123,7 +125,10 @@ class Worker:
         definitivo = (
             isinstance(exc, ErroPermanente) or evento.tentativas >= self.settings.max_tentativas
         )
-        extra = {"hubspot_contact_id": evento.hubspot_contact_id, "tentativa": evento.tentativas}
+        extra = {
+            "evento_id": evento.id, "hubspot_contact_id": evento.hubspot_contact_id,
+            "tentativa": evento.tentativas, "erro": type(exc).__name__,
+        }
         if definitivo:
             self._finalizar(evento.id, "erro", mensagem)
             logger.error("evento com erro definitivo", extra=extra)
@@ -141,7 +146,9 @@ class Worker:
                 self.registrar_falha(evento, exc)
             else:
                 self._finalizar(evento.id, "concluido", None)
-                logger.info("evento concluido", extra={"hubspot_contact_id": evento.hubspot_contact_id})
+                logger.info("evento concluido", extra={
+                    "evento_id": evento.id, "hubspot_contact_id": evento.hubspot_contact_id,
+                })
         return len(eventos)
 
     # ---- processamento --------------------------------------------------------
@@ -157,15 +164,65 @@ class Worker:
         )
         return dados, contato
 
-    async def _consultar_fontes(self, dados: DadosLead) -> list[tuple[str, CampoEncontrado]]:
+    async def _consultar_fontes(
+        self, evento: EventoReservado, dados: DadosLead
+    ) -> list[tuple[str, CampoEncontrado]]:
         encontrados: list[tuple[str, CampoEncontrado]] = []
         for fonte in self.fontes:
             if fonte.aplicavel(dados):
-                encontrados += [(fonte.nome, c) for c in await fonte.consultar(dados)]
+                campos = await self._consultar_fonte(evento, fonte, dados)
+                encontrados += [(fonte.nome, c) for c in campos]
         return encontrados
 
+    async def _consultar_fonte(
+        self, evento: EventoReservado, fonte: Fonte, dados: DadosLead
+    ) -> list[CampoEncontrado]:
+        """Consulta uma fonte, respeitando o limite mensal, e registra o resultado."""
+        extra = {"evento_id": evento.id, "hubspot_contact_id": evento.hubspot_contact_id,
+                 "fonte": fonte.nome}
+        if fonte.limite_mensal is not None and not self._reservar_consumo(fonte):
+            motivo = f"limite mensal de {fonte.limite_mensal} consultas atingido"
+            self._registrar_consulta(evento.id, fonte.nome, "limite_atingido", motivo)
+            logger.warning("fonte pulada: limite mensal atingido", extra=extra)
+            return []
+        try:
+            campos = await fonte.consultar(dados)
+        except Exception as exc:
+            self._registrar_consulta(evento.id, fonte.nome, "erro", type(exc).__name__)
+            logger.warning("fonte falhou", extra={**extra, "erro": type(exc).__name__})
+            raise
+        resultado = "com_dados" if campos else "sem_dados"
+        self._registrar_consulta(evento.id, fonte.nome, resultado, None)
+        logger.info("fonte consultada", extra={**extra, "resultado": resultado,
+                                                "campos": len(campos)})
+        return campos
+
+    def _reservar_consumo(self, fonte: Fonte) -> bool:
+        with self.sessoes() as sessao, sessao.begin():
+            return consumo.reservar(sessao, fonte.nome, fonte.limite_mensal or 0)
+
+    def _registrar_consulta(
+        self, evento_id: int, fonte: str, resultado: str, motivo: str | None
+    ) -> None:
+        """Último resultado de cada fonte por evento (upsert: reprocessar não duplica)."""
+        stmt = insert(EnriquecimentoConsulta).values(
+            evento_id=evento_id, fonte=fonte, resultado=resultado, motivo=motivo
+        )
+        stmt = stmt.on_conflict_do_update(
+            constraint="uq_enriquecimento_consulta_evento_fonte",
+            set_={"resultado": resultado, "motivo": motivo, "consultado_em": _agora()},
+        )
+        with self.sessoes() as sessao, sessao.begin():
+            sessao.execute(stmt)
+
     def _gravacoes_anteriores(self, sessao: Session, contact_id: str) -> dict[str, GravacaoAnterior]:
-        """Última gravação aplicada por campo interno, para este contato."""
+        """Última gravação aplicada por propriedade do HubSpot, para este contato.
+
+        Por propriedade, não por campo interno: duas fontes podem gravar a mesma
+        propriedade com nomes internos diferentes (ex.: razao_social e
+        nome_empresa em `company`), e o valor gravado por uma não é "manual"
+        para a outra.
+        """
         stmt = (
             select(EnriquecimentoCampo)
             .join(EnriquecimentoEvento, EnriquecimentoCampo.evento_id == EnriquecimentoEvento.id)
@@ -175,9 +232,11 @@ class Worker:
             )
             .order_by(EnriquecimentoCampo.id)
         )
+        mapa = self.settings.mapa_propriedades
         return {
-            c.campo: GravacaoAnterior(c.valor or "", Decimal(c.confianca))
+            mapa[c.campo]: GravacaoAnterior(c.valor or "", Decimal(c.confianca))
             for c in sessao.scalars(stmt)
+            if c.campo in mapa
         }
 
     def _decidir_todos(
@@ -193,11 +252,11 @@ class Worker:
             prop = self.settings.mapa_propriedades.get(campo.campo)
             decisao = decidir(
                 campo, prop, atuais.get(prop) if prop else None,
-                anteriores.get(campo.campo), self.settings.confianca_minima,
+                anteriores.get(prop) if prop else None, self.settings.confianca_minima,
             )
             if decisao.gravar:
                 atuais[prop] = campo.valor
-                anteriores[campo.campo] = GravacaoAnterior(campo.valor, campo.confianca)
+                anteriores[prop] = GravacaoAnterior(campo.valor, campo.confianca)
             resultados.append(ResultadoCampo(fonte, campo, prop, decisao))
         return resultados
 
@@ -230,7 +289,7 @@ class Worker:
 
     async def processar_evento(self, evento: EventoReservado) -> None:
         dados, contato = await self._ler_lead(evento.hubspot_contact_id)
-        encontrados = await self._consultar_fontes(dados)
+        encontrados = await self._consultar_fontes(evento, dados)
         with self.sessoes() as sessao, sessao.begin():
             anteriores = self._gravacoes_anteriores(sessao, evento.hubspot_contact_id)
             resultados = self._decidir_todos(encontrados, contato, anteriores)
@@ -261,6 +320,29 @@ def corpo_nota(resultados: list[ResultadoCampo]) -> str:
     return "".join(partes)
 
 
+def montar_fontes(http: httpx.AsyncClient, settings: Settings) -> list[Fonte]:
+    """Fontes habilitadas. As gratuitas vêm antes: se uma delas falhar, o evento
+    volta para a fila sem gastar consulta da fonte paga."""
+    fontes: list[Fonte] = [FonteBrasilAPI(http, settings.brasilapi_url_base)]
+    if settings.fonte_dominio_ativa:
+        fontes.append(FonteProvedorDominio(
+            http,
+            nome=settings.provedor_dominio_nome,
+            url=settings.provedor_dominio_url,
+            api_key=settings.provedor_dominio_api_key.get_secret_value(),
+            mapa_campos=settings.provedor_dominio_mapa_campos,
+            limite_mensal=settings.limite_consumo_mensal_provedor,
+            confianca=settings.provedor_dominio_confianca,
+            caminho_confianca=settings.provedor_dominio_caminho_confianca,
+            header_auth=settings.provedor_dominio_header_auth,
+            prefixo_auth=settings.provedor_dominio_prefixo_auth,
+            limitador=LimitadorTaxa(
+                settings.provedor_dominio_limite_taxa, settings.provedor_dominio_janela_taxa_segundos
+            ),
+        ))
+    return fontes
+
+
 async def main() -> None:
     from app.db.session import get_sessionmaker
 
@@ -270,7 +352,7 @@ async def main() -> None:
         hubspot = ClienteHubSpot(
             http, settings.hubspot_token.get_secret_value(), settings.hubspot_url_base
         )
-        fontes: list[Fonte] = [FonteBrasilAPI(http, settings.brasilapi_url_base)]
+        fontes = montar_fontes(http, settings)
         worker = Worker(get_sessionmaker(), hubspot, fontes, settings)
         await worker.preparar()
         logger.info("worker iniciado", extra={"fontes": [f.nome for f in fontes]})

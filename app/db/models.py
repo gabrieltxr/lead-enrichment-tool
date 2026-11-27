@@ -86,3 +86,51 @@ class EnriquecimentoCampo(Base):
     aplicado: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=false())
     # Por que foi ou não aplicado (ex.: campo_vazio, campo_manual, confianca_baixa).
     motivo: Mapped[str | None] = mapped_column(String(50))
+
+
+RESULTADOS_CONSULTA = ("com_dados", "sem_dados", "erro", "limite_atingido")
+
+
+class EnriquecimentoConsulta(Base):
+    """Resultado da última consulta de cada fonte para cada evento.
+
+    Base da taxa de sucesso por fonte em GET /metricas. Fica fora da transação
+    da auditoria: uma consulta que falhou também precisa ser contada.
+    """
+
+    __tablename__ = "enriquecimento_consulta"
+    __table_args__ = (
+        CheckConstraint(
+            "resultado IN ('com_dados', 'sem_dados', 'erro', 'limite_atingido')",
+            name="ck_enriquecimento_consulta_resultado",
+        ),
+        UniqueConstraint("evento_id", "fonte", name="uq_enriquecimento_consulta_evento_fonte"),
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    evento_id: Mapped[int] = mapped_column(
+        ForeignKey("enriquecimento_evento.id", ondelete="CASCADE"), nullable=False
+    )
+    fonte: Mapped[str] = mapped_column(String(50), nullable=False)
+    resultado: Mapped[str] = mapped_column(String(20), nullable=False)
+    # Classe do erro ou motivo do pulo; nunca dados do lead.
+    motivo: Mapped[str | None] = mapped_column(String(200))
+    consultado_em: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+
+class ConsumoFonte(Base):
+    """Contador mensal de consultas por fonte paga (mês no formato AAAA-MM, UTC)."""
+
+    __tablename__ = "consumo_fonte"
+    __table_args__ = (
+        CheckConstraint("consultas >= 0", name="ck_consumo_fonte_consultas"),
+    )
+
+    fonte: Mapped[str] = mapped_column(String(50), primary_key=True)
+    mes: Mapped[str] = mapped_column(String(7), primary_key=True)
+    consultas: Mapped[int] = mapped_column(Integer, nullable=False, server_default=text("0"))
+    atualizado_em: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )

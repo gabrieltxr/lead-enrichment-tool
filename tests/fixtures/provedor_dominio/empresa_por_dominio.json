@@ -1,0 +1,13 @@
+{
+  "dominio": "exemplo-empresa.com.br",
+  "confianca": 0.92,
+  "empresa": {
+    "nome": "Exemplo Empresa Ltda",
+    "setor": "Software",
+    "funcionarios": 120,
+    "site": "https://exemplo-empresa.com.br",
+    "linkedin": null,
+    "localizacao": {"cidade": "Campinas", "uf": "SP", "pais": "Brasil"}
+  },
+  "tags": ["saas", "b2b"]
+}

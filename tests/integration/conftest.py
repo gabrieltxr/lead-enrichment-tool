@@ -43,7 +43,7 @@ def engine() -> Iterator[Engine]:
 @pytest.fixture
 def sessao(engine: Engine) -> Iterator[Session]:
     with engine.begin() as conn:
-        conn.execute(text("TRUNCATE enriquecimento_campo, enriquecimento_evento RESTART IDENTITY"))
+        conn.execute(text("TRUNCATE enriquecimento_consulta, enriquecimento_campo, enriquecimento_evento, consumo_fonte RESTART IDENTITY"))
     with sessionmaker(bind=engine)() as s:
         yield s
 

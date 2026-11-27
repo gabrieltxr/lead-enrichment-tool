@@ -3,6 +3,7 @@
 from decimal import Decimal
 from functools import lru_cache
 from typing import Literal
+from urllib.parse import urlsplit
 
 from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -78,6 +79,14 @@ class Settings(BaseSettings):
     worker_reserva_segundos: int = Field(default=600, ge=30)
     log_level: str = "INFO"
 
+    @field_validator("hubspot_token", "hubspot_webhook_secret")
+    @classmethod
+    def _exigir_segredo(cls, valor: SecretStr) -> SecretStr:
+        # Com o client secret vazio, qualquer um calcula uma assinatura válida.
+        if not valor.get_secret_value().strip():
+            raise ValueError("não pode ser vazio")
+        return valor
+
     @field_validator("assinaturas_aceitas")
     @classmethod
     def _validar_assinaturas(cls, valor: str) -> str:
@@ -104,6 +113,14 @@ class Settings(BaseSettings):
             raise ValueError(f"FONTE_DOMINIO_ATIVA=true exige {', '.join(faltando)}")
         if "{dominio}" not in self.provedor_dominio_url:
             raise ValueError("PROVEDOR_DOMINIO_URL deve conter o marcador {dominio}")
+        # O domínio vem do e-mail do lead (dado externo). Se ele pudesse cair no
+        # host, um lead poderia direcionar a chamada (com a chave da API) para
+        # qualquer servidor. E a chave só trafega com TLS.
+        partes = urlsplit(self.provedor_dominio_url)
+        if partes.scheme != "https" or not partes.hostname:
+            raise ValueError("PROVEDOR_DOMINIO_URL deve usar https://")
+        if "{dominio}" in partes.netloc:
+            raise ValueError("PROVEDOR_DOMINIO_URL não pode ter {dominio} no host")
         return self
 
     @property

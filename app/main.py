@@ -36,7 +36,16 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
     yield
 
 
-app = FastAPI(title="Enriquecimento de leads", lifespan=lifespan)
+# Sem /docs, /redoc e /openapi.json: o serviço não tem API pública para documentar.
+app = FastAPI(
+    title="Enriquecimento de leads", lifespan=lifespan,
+    docs_url=None, redoc_url=None, openapi_url=None,
+)
+
+# Um lote do HubSpot tem no máximo 100 eventos (~30 KB); o schema aceita até
+# 1000. 1 MiB cobre com folga e impede que um corpo gigante seja lido para a
+# memória antes de a assinatura ser conferida.
+TAMANHO_MAXIMO_CORPO = 1024 * 1024
 
 SessaoDep = Annotated[Session, Depends(get_session)]
 SettingsDep = Annotated[Settings, Depends(get_settings)]
@@ -66,9 +75,23 @@ def _gravar_eventos(sessao: Session, eventos: list[EventoWebhook]) -> int:
     return novos
 
 
+async def _ler_corpo_limitado(request: Request, limite: int = TAMANHO_MAXIMO_CORPO) -> bytes:
+    excedeu = HTTPException(status_code=413, detail="corpo grande demais")
+    declarado = request.headers.get("content-length")
+    if declarado and declarado.isdigit() and int(declarado) > limite:
+        raise excedeu
+    partes, total = [], 0
+    async for parte in request.stream():
+        total += len(parte)
+        if total > limite:
+            raise excedeu
+        partes.append(parte)
+    return b"".join(partes)
+
+
 @app.post("/webhooks/hubspot")
 async def receber_webhook(request: Request, sessao: SessaoDep, settings: SettingsDep) -> dict:
-    corpo = await request.body()
+    corpo = await _ler_corpo_limitado(request)
     if not requisicao_autentica(
         segredo=settings.hubspot_webhook_secret.get_secret_value(),
         metodo=request.method,

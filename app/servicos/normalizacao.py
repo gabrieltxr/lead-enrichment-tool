@@ -23,6 +23,13 @@ def dominio_do_email(email: str | None) -> str | None:
         dominio = dominio[4:]
     if "." not in dominio or not re.fullmatch(r"[a-z0-9.-]+", dominio):
         return None
+    rotulos = dominio.split(".")
+    # Rótulos vazios ou com hífen na borda, e TLD sem letras (IP literal como
+    # 10.0.0.1) não são domínio de empresa e só gastariam consulta paga.
+    if any(not r or r[0] == "-" or r[-1] == "-" or len(r) > 63 for r in rotulos):
+        return None
+    if not re.fullmatch(r"[a-z][a-z0-9-]*", rotulos[-1]) or len(dominio) > 253:
+        return None
     if dominio in PROVEDORES_GENERICOS:
         return None
     return dominio

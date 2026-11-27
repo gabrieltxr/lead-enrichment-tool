@@ -15,3 +15,9 @@ Para regravar a fixture da BrasilAPI com a resposta real:
       | python -m json.tool > tests/fixtures/brasilapi/cnpj_19131243000197.json
 
 Não grave aqui respostas com dados pessoais reais (nomes, e-mails, telefones).
+
+- `provedor_dominio/empresa_por_dominio.json`: resposta **fictícia** de um
+  provedor genérico de dados por domínio (o provedor ainda não foi escolhido).
+  Serve para testar o mapeamento por caminho (`PROVEDOR_DOMINIO_MAPA_CAMPOS`).
+  Quando o provedor for definido, grave aqui uma resposta real (sem dados
+  pessoais) e ajuste o mapa nos testes.

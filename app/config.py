@@ -3,7 +3,7 @@
 from decimal import Decimal
 from functools import lru_cache
 
-from pydantic import Field, SecretStr, field_validator
+from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -38,9 +38,27 @@ class Settings(BaseSettings):
     }
     confianca_minima: Decimal = Field(default=Decimal("0.70"), ge=0, le=1)
 
+    # Fonte paga por domínio (Fase 3). Agnóstica de provedor: URL, autenticação
+    # e mapeamento de campos vêm da configuração.
     fonte_dominio_ativa: bool = False
     provedor_dominio_api_key: SecretStr | None = None
     limite_consumo_mensal_provedor: int = Field(default=1000, ge=0)
+    provedor_dominio_nome: str = Field(default="provedor_dominio", min_length=1, max_length=50)
+    # URL com o marcador {dominio}. Ex.: https://api.exemplo.com/v1/empresas?dominio={dominio}
+    provedor_dominio_url: str | None = None
+    provedor_dominio_header_auth: str = "Authorization"
+    provedor_dominio_prefixo_auth: str = "Bearer "
+    # Campo interno -> caminho na resposta JSON (com pontos). Ex.: {"setor": "empresa.setor"}
+    provedor_dominio_mapa_campos: dict[str, str] = {}
+    # Confiança fixa dos campos do provedor (domínio exato, abaixo do CNPJ exato).
+    provedor_dominio_confianca: Decimal = Field(default=Decimal("0.85"), ge=0, le=1)
+    # Opcional: caminho na resposta com a confiança do próprio provedor (0 a 1).
+    # Quando presente, vale o menor valor entre ela e PROVEDOR_DOMINIO_CONFIANCA.
+    provedor_dominio_caminho_confianca: str | None = None
+    provedor_dominio_requisicoes_por_segundo: int = Field(default=2, ge=1)
+
+    # Token exigido em GET /metricas (Authorization: Bearer ...). Vazio = aberto.
+    metricas_token: SecretStr | None = None
 
     max_tentativas: int = Field(default=5, ge=1)
     worker_intervalo_segundos: float = Field(default=5.0, gt=0)
@@ -56,6 +74,23 @@ class Settings(BaseSettings):
         if not versoes or not versoes <= {"v1", "v2", "v3"}:
             raise ValueError("ASSINATURAS_ACEITAS deve listar v1, v2 e/ou v3")
         return ",".join(sorted(versoes))
+
+    @model_validator(mode="after")
+    def _validar_fonte_dominio(self) -> "Settings":
+        if not self.fonte_dominio_ativa:
+            return self
+        faltando = [
+            nome for nome, valor in (
+                ("PROVEDOR_DOMINIO_URL", self.provedor_dominio_url),
+                ("PROVEDOR_DOMINIO_API_KEY", self.provedor_dominio_api_key),
+                ("PROVEDOR_DOMINIO_MAPA_CAMPOS", self.provedor_dominio_mapa_campos),
+            ) if not valor
+        ]
+        if faltando:
+            raise ValueError(f"FONTE_DOMINIO_ATIVA=true exige {', '.join(faltando)}")
+        if "{dominio}" not in self.provedor_dominio_url:
+            raise ValueError("PROVEDOR_DOMINIO_URL deve conter o marcador {dominio}")
+        return self
 
     @property
     def versoes_assinatura(self) -> frozenset[str]:

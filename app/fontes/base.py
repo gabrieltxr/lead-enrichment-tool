@@ -23,6 +23,8 @@ class CampoEncontrado:
 
 class Fonte(ABC):
     nome: str
+    # Limite de consultas por mês (fonte paga). None = sem controle de consumo.
+    limite_mensal: int | None = None
 
     @abstractmethod
     def aplicavel(self, dados: DadosLead) -> bool:

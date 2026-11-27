@@ -216,7 +216,13 @@ class Worker:
             sessao.execute(stmt)
 
     def _gravacoes_anteriores(self, sessao: Session, contact_id: str) -> dict[str, GravacaoAnterior]:
-        """Última gravação aplicada por campo interno, para este contato."""
+        """Última gravação aplicada por propriedade do HubSpot, para este contato.
+
+        Por propriedade, não por campo interno: duas fontes podem gravar a mesma
+        propriedade com nomes internos diferentes (ex.: razao_social e
+        nome_empresa em `company`), e o valor gravado por uma não é "manual"
+        para a outra.
+        """
         stmt = (
             select(EnriquecimentoCampo)
             .join(EnriquecimentoEvento, EnriquecimentoCampo.evento_id == EnriquecimentoEvento.id)
@@ -226,9 +232,11 @@ class Worker:
             )
             .order_by(EnriquecimentoCampo.id)
         )
+        mapa = self.settings.mapa_propriedades
         return {
-            c.campo: GravacaoAnterior(c.valor or "", Decimal(c.confianca))
+            mapa[c.campo]: GravacaoAnterior(c.valor or "", Decimal(c.confianca))
             for c in sessao.scalars(stmt)
+            if c.campo in mapa
         }
 
     def _decidir_todos(
@@ -244,11 +252,11 @@ class Worker:
             prop = self.settings.mapa_propriedades.get(campo.campo)
             decisao = decidir(
                 campo, prop, atuais.get(prop) if prop else None,
-                anteriores.get(campo.campo), self.settings.confianca_minima,
+                anteriores.get(prop) if prop else None, self.settings.confianca_minima,
             )
             if decisao.gravar:
                 atuais[prop] = campo.valor
-                anteriores[campo.campo] = GravacaoAnterior(campo.valor, campo.confianca)
+                anteriores[prop] = GravacaoAnterior(campo.valor, campo.confianca)
             resultados.append(ResultadoCampo(fonte, campo, prop, decisao))
         return resultados
 
@@ -320,7 +328,7 @@ def montar_fontes(http: httpx.AsyncClient, settings: Settings) -> list[Fonte]:
         fontes.append(FonteProvedorDominio(
             http,
             nome=settings.provedor_dominio_nome,
-            url=settings.provedor_dominio_url or "",
+            url=settings.provedor_dominio_url,
             api_key=settings.provedor_dominio_api_key.get_secret_value(),
             mapa_campos=settings.provedor_dominio_mapa_campos,
             limite_mensal=settings.limite_consumo_mensal_provedor,
@@ -328,7 +336,9 @@ def montar_fontes(http: httpx.AsyncClient, settings: Settings) -> list[Fonte]:
             caminho_confianca=settings.provedor_dominio_caminho_confianca,
             header_auth=settings.provedor_dominio_header_auth,
             prefixo_auth=settings.provedor_dominio_prefixo_auth,
-            limitador=LimitadorTaxa(settings.provedor_dominio_requisicoes_por_segundo, 1.0),
+            limitador=LimitadorTaxa(
+                settings.provedor_dominio_limite_taxa, settings.provedor_dominio_janela_taxa_segundos
+            ),
         ))
     return fontes
 

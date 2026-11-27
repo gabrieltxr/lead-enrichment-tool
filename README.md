@@ -119,26 +119,66 @@ Volta os eventos para `pendente` com `tentativas` zerado.
 
 ## Fonte por domínio (paga, opcional)
 
-Desligada por padrão (`FONTE_DOMINIO_ATIVA=false`). O código não depende de um
-provedor: tudo vem da configuração, então trocar de provedor é trocar variáveis
-de ambiente.
+Desligada por padrão (`FONTE_DOMINIO_ATIVA=false`). O provedor padrão é a
+**Apollo** ([Organization Enrichment](https://docs.apollo.io/reference/organization-enrichment)),
+que cobre empresas de qualquer país. O código não depende dela: a fonte parte
+de um preset (`PROVEDOR_DOMINIO_PRESET`) e cada `PROVEDOR_DOMINIO_*` definido
+sobrescreve o valor do preset. Trocar de provedor é trocar variáveis de
+ambiente.
+
+**Ligar com a Apollo:**
+
+```bash
+FONTE_DOMINIO_ATIVA=true
+PROVEDOR_DOMINIO_API_KEY=...            # chave com acesso a organizations/enrich
+LIMITE_CONSUMO_MENSAL_PROVEDOR=1000     # créditos por mês que você aceita gastar
+```
+
+O preset `apollo` chama `GET https://api.apollo.io/api/v1/organizations/enrich?domain={dominio}`
+com o header `x-api-key` (1 crédito por consulta), limita a 600 chamadas por
+hora (exemplo da documentação; ajuste ao seu plano com
+`PROVEDOR_DOMINIO_LIMITE_TAXA`/`PROVEDOR_DOMINIO_JANELA_TAXA_SEGUNDOS`) e
+extrai:
+
+| Campo interno | Caminho na resposta | Propriedade padrão no HubSpot |
+| --- | --- | --- |
+| `nome_empresa` | `organization.name` | `company` |
+| `site` | `organization.website_url` | `website` |
+| `setor` | `organization.industry` | `industry` |
+| `pais` | `organization.country` | `country` |
+| `municipio`, `uf`, `cep`, `endereco` | `organization.city`, `.state`, `.postal_code`, `.street_address` | `city`, `state`, `zip`, `address` |
+| `linkedin_empresa`, `num_funcionarios`, `receita_anual`, `ano_fundacao`, `descricao` | `organization.linkedin_url`, `.estimated_num_employees`, `.annual_revenue`, `.founded_year`, `.short_description` | só auditoria (mapeie em `MAPA_PROPRIEDADES` se quiser) |
+
+Telefones da resposta são ignorados. A Apollo não documenta o status de um
+domínio não encontrado; uma resposta sem `organization` é tratada como "sem
+dados". 401 (chave inválida) e 403 (chave sem acesso ao endpoint) viram erro
+permanente do evento, para o problema aparecer logo.
+
+**Outro provedor** (`PROVEDOR_DOMINIO_PRESET=personalizado`):
 
 | Variável | Para quê |
 | --- | --- |
-| `PROVEDOR_DOMINIO_URL` | URL de consulta com o marcador `{dominio}` (obrigatória com a flag ligada) |
+| `PROVEDOR_DOMINIO_URL` | URL de consulta com o marcador `{dominio}` (obrigatória) |
 | `PROVEDOR_DOMINIO_API_KEY` | Chave do provedor (obrigatória) |
-| `PROVEDOR_DOMINIO_HEADER_AUTH` / `PROVEDOR_DOMINIO_PREFIXO_AUTH` | Header e prefixo da chave. Padrão `Authorization: Bearer <chave>`; para `X-Api-Key: <chave>` use prefixo vazio |
+| `PROVEDOR_DOMINIO_HEADER_AUTH` / `PROVEDOR_DOMINIO_PREFIXO_AUTH` | Header e prefixo da chave. Padrão `Authorization: Bearer <chave>` |
 | `PROVEDOR_DOMINIO_MAPA_CAMPOS` | JSON campo interno → caminho na resposta, ex. `{"setor": "empresa.setor", "cidade_sede": "enderecos.0.cidade"}` (obrigatório) |
-| `PROVEDOR_DOMINIO_CONFIANCA` | Confiança dos campos (padrão 0.85: domínio exato, abaixo do CNPJ exato) |
-| `PROVEDOR_DOMINIO_CAMINHO_CONFIANCA` | Opcional: caminho de um score 0 a 1 da resposta; vale o menor entre ele e o valor acima |
 | `PROVEDOR_DOMINIO_NOME` | Nome da fonte na auditoria, em `origem_enriquecimento` e nas métricas |
-| `PROVEDOR_DOMINIO_REQUISICOES_POR_SEGUNDO` | Limite de taxa (padrão 2/s) |
-| `LIMITE_CONSUMO_MENSAL_PROVEDOR` | Consultas por mês (padrão 1000) |
+| `PROVEDOR_DOMINIO_LIMITE_TAXA` / `PROVEDOR_DOMINIO_JANELA_TAXA_SEGUNDOS` | Limite de taxa (padrão 2 por segundo) |
+
+Valem para os dois: `PROVEDOR_DOMINIO_CONFIANCA` (padrão 0.85: domínio exato,
+abaixo do CNPJ exato), `PROVEDOR_DOMINIO_CAMINHO_CONFIANCA` (opcional: caminho
+de um score 0 a 1 da resposta; vale o menor) e `LIMITE_CONSUMO_MENSAL_PROVEDOR`.
+
+Para adicionar um preset para outro provedor, inclua uma entrada em `PRESETS`
+(`app/fontes/provedor_dominio.py`) e no `Literal` de `provedor_dominio_preset`.
 
 Para um campo do provedor ir para o HubSpot, ele também precisa estar em
 `MAPA_PROPRIEDADES` (ex.: `"num_funcionarios": "numberofemployees"`). Sem isso
 ele só vai para a auditoria (`sem_mapeamento`). Quando a BrasilAPI e o provedor
-trazem o mesmo campo, vence a maior confiança (CNPJ exato, 1.00).
+gravam a mesma propriedade (ex.: `razao_social` e `nome_empresa` em `company`),
+vence a maior confiança (CNPJ exato, 1.00). A proteção de campo manual compara
+por propriedade: um valor que o próprio serviço gravou, por qualquer fonte, não
+conta como manual.
 
 - Só é consultada quando o e-mail tem domínio corporativo (gmail.com e
   similares são ignorados).
@@ -171,7 +211,7 @@ com as outras fontes. O contador zera sozinho na virada do mês.
                   "limite_atingido": 0, "taxa_sucesso": 0.5}
   },
   "leads_com_pelo_menos_3_campos": {"concluidos": 3, "com_3_campos_ou_mais": 1, "percentual": 33.33},
-  "consumo_mensal": {"mes": "2026-11", "fontes": {"provedor_dominio": {"consultas": 1, "limite": 1000, "restante": 999}}}
+  "consumo_mensal": {"mes": "2026-11", "fontes": {"apollo": {"consultas": 1, "limite": 1000, "restante": 999}}}
 }
 ```
 
@@ -197,7 +237,8 @@ formatador, e os do httpx (que trazem URLs) só aparecem a partir de WARNING.
 
 O cliente do HubSpot limita a 90 requisições a cada 10 s (o Starter permite
 100 por app) e repete 429 com backoff. A BrasilAPI é limitada a 3 por segundo
-e o provedor por domínio a `PROVEDOR_DOMINIO_REQUISICOES_POR_SEGUNDO`.
+e o provedor por domínio a `PROVEDOR_DOMINIO_LIMITE_TAXA` chamadas por
+`PROVEDOR_DOMINIO_JANELA_TAXA_SEGUNDOS` (Apollo: 600 por hora).
 
 ## Execução local
 
@@ -275,8 +316,9 @@ Ver `.env.example`. Obrigatórias: `HUBSPOT_TOKEN`, `HUBSPOT_WEBHOOK_SECRET`,
 - Atenção: a razão social de MEI costuma conter o nome (e às vezes o CPF) do
   titular, ou seja, é dado pessoal.
 - **Pendente:** definir o responsável e a base legal do tratamento antes de
-  rodar em produção, e o contrato (operador de dados) com o provedor por
-  domínio antes de ligar `FONTE_DOMINIO_ATIVA`.
+  rodar em produção, e o contrato (operador de dados) com a Apollo antes de
+  ligar `FONTE_DOMINIO_ATIVA`. Só a organização é consultada; o serviço não usa
+  os endpoints de pessoas da Apollo.
 
 ## Decisões da Fase 1
 
